@@ -6,7 +6,7 @@ interface CardProps {
     description: string;
 }
 
-const Card: FC<CardProps> = ({ label, description }) => {
+export const Card: FC<CardProps> = ({ label, description }) => {
 
     return (
         <RadixCard asChild style={{ margin: "10px"}}>
@@ -21,5 +21,3 @@ const Card: FC<CardProps> = ({ label, description }) => {
         </RadixCard>
     )
 };
-
-export default Card;

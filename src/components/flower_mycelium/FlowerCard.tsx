@@ -1,17 +1,17 @@
 import { FC } from 'react';
-import { Box } from '@radix-ui/themes';
+import { Box, Text } from '@radix-ui/themes';
 
-import Card from "../common/Card";
+import { Flower } from "../../interfaces/interfaces"
+import { Card } from "../common/Card";
 
-interface FlowerCardProps {
-    id: number;
-    label: string;
-    description: string;
+export interface FlowerCardProps {
+    id: string,
+    flowerParams?: Flower
     selected?: boolean;
-    onClick: (id: number) => void
+    onClick: (id: string) => void;
 }
 
-const FlowerCard: FC<FlowerCardProps> = ({ id, label, description, selected, onClick }) => {
+const FlowerCard: FC<FlowerCardProps> = ({ id, flowerParams, selected, onClick }) => {
 
     const boxStyle = {
         backgroundColor: "var(--pol-bg-1)",
@@ -27,7 +27,22 @@ const FlowerCard: FC<FlowerCardProps> = ({ id, label, description, selected, onC
 
     return (
         <Box maxWidth="360px" minHeight="120px" style={boxStyle} onClick={() => onClick(id)}>
-            <Card label={label} description={description} />
+            {
+                flowerParams
+                ? <Card label={flowerParams.name} description={flowerParams.description} />
+                : 
+                    <Text style={{
+                        color: 'var(--pol-ultra-red)',
+                        fontWeight: "bold",
+                        fontSize: "24px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100%" 
+                    }}>
+                        +
+                    </Text>
+            }
         </Box>
     )
 };

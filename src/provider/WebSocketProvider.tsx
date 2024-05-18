@@ -25,6 +25,10 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
     const [webSockets, setWebSockets] = useState<Map<string, WebSocket>>(new Map());
 
     const addDevice = (device: DeviceInfo) => {
+        if (webSockets.get(device.id)) {
+            console.error("Device websocket is already connected.");
+            return;
+        }
         const websocket = new WebSocket(`ws://${device.ip}:${device.port}`);
 
         websocket.onopen = () => console.log(`WebSocket Connected: ${device.id}`);

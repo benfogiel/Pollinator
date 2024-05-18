@@ -1,6 +1,7 @@
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { Tab } from "@headlessui/react"
 
+import { Flower } from "../interfaces/interfaces";
 import ControlGrid from "./pollination_control/ControlGrid";
 import MyceliumGrid from "./flower_mycelium/MyceliumGrid";
 
@@ -9,18 +10,20 @@ function classNames(...classes : string[]) {
 }
 
 const Dashboard: FC = () => {
-    const categories: { [key: string]: typeof ControlGrid | typeof MyceliumGrid } = {
-        "Pollination Control": ControlGrid,
-        "Flowers": MyceliumGrid,
-    };
+    const [flowers, setFlowers] = useState<Record<string, Flower>>({});
+
+    const categories = [
+        { name: "Pollination Control", component: <ControlGrid /> },
+        { name: "Flowers", component: <MyceliumGrid flowers={flowers} setFlowers={setFlowers} /> },
+    ];
 
     return (
         <div className="w-full max-w-md px-2 py-16 sm:px-0">
             <Tab.Group>
                 <Tab.List className="flex space-x-1 rounded-xl bg-transparent p-1">
-                    {Object.keys(categories).map((category) => (
+                    {categories.map((category) => (
                         <Tab
-                            key={category}
+                            key={category.name}
                             className={({ selected }) =>
                                 classNames(
                                     "w-full rounded-lg py-2.5 text-sm font-medium leading-5",
@@ -30,20 +33,14 @@ const Dashboard: FC = () => {
                                 )
                             }
                         >
-                        {category}
+                        {category.name}
                         </Tab>
                     ))}
                     </Tab.List>
                     <Tab.Panels className="mt-2">
-                        {Object.keys(categories).map((category, i) => (
-                            <Tab.Panel
-                                key={i}
-                                // className={classNames(
-                                //     "rounded-xl p-3",
-                                //     "ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2"
-                                // )}
-                            >
-                                {React.createElement(categories[category])}
+                        {categories.map((category) => (
+                            <Tab.Panel key={category.name}>
+                                {category.component}
                             </Tab.Panel>
                         ))}
                     </Tab.Panels>

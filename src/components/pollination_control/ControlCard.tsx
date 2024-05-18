@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Box } from '@radix-ui/themes';
 
-import Card from "../common/Card";
+import {Card} from "../common/Card";
 
 interface ControlCardProps {
     id: number;

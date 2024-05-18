@@ -1,25 +1,49 @@
-import React, { FC, ReactElement, useState, Fragment } from "react";
+import React, { FC, ReactElement, useState, useRef } from "react";
 import { useWebSocket } from "../../provider/WebSocketProvider";
 import * as Dialog from "@radix-ui/react-dialog";
 
+import { Flower } from "../../interfaces/interfaces"
+import { FlowerCardProps } from "./FlowerCard"
 import InputField from "../common/InputField";
 
 interface NurseryModalProps {
-    flowerCard: ReactElement<any, any>;
+    flowerCard: ReactElement<FlowerCardProps>;
+    updateFlower: (flowerParams: Flower) => void;
 }
 
-const NurseryModal: FC<NurseryModalProps> = ({flowerCard}) => {
-    const [deviceId, setDeviceId] = useState("");
-    const [ipAddress, setIpAddress] = useState("");
-    const [port, setPort] = useState("81");
+const NurseryModal: FC<NurseryModalProps> = ({flowerCard, updateFlower}) => {
+    const flowerParams: Flower | undefined = flowerCard.props.flowerParams;
+
+    const [deviceName, setDeviceName] = useState(flowerParams ? flowerParams.name : "");
+    const [deviceDescription, setDeviceDescription] = useState(flowerParams ? flowerParams.description : "");
+    const [ipAddress, setIpAddress] = useState(flowerParams ? flowerParams.ip : "");
+    const [port, setPort] = useState(flowerParams ? flowerParams.port.toString() : "81");
     const websocketContext = useWebSocket();
+    const closeRef: React.MutableRefObject<any> = useRef(null);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const portNumber = parseInt(port, 10);
-        if (websocketContext && deviceId && ipAddress && portNumber) {
+        const deviceId = flowerCard.props.id;
+        if (websocketContext && deviceId && ipAddress && port) {
             websocketContext.addDevice({ id: deviceId, ip: ipAddress, port: portNumber });
+            updateFlower({
+                id: deviceId,
+                name: deviceName,
+                description: deviceDescription,
+                ip: ipAddress,
+                port: portNumber,
+            });
+            handleClose();
         }
+    };
+
+    const handleClose = () => {
+        setDeviceName("");
+        setDeviceDescription("");
+        setIpAddress("");
+        setPort("81");
+        closeRef?.current?.click && closeRef.current.click();
     };
 
     return (<>
@@ -31,12 +55,20 @@ const NurseryModal: FC<NurseryModalProps> = ({flowerCard}) => {
                     className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-pol-bg-1 p-6 rounded-lg w-300 max-w-md z-50"
                     onInteractOutside={(event) => event.preventDefault()}>
                     <Dialog.Title className="text-lg font-bold text-pol-ultra-red">Connect to Device</Dialog.Title>
+                    <Dialog.Close ref={closeRef} className="hidden" />
                     <form onSubmit={handleSubmit} className="space-y-4 pt-5">
                         <InputField
-                            label="Device ID"
-                            placeholder="Enter device ID"
-                            value={deviceId}
-                            setValue={setDeviceId}
+                            label="Device Name"
+                            placeholder="Enter Device Name"
+                            value={deviceName}
+                            setValue={setDeviceName}
+                            type="text"
+                        />
+                        <InputField
+                            label="Device Description"
+                            placeholder="Enter Device Description"
+                            value={deviceDescription}
+                            setValue={setDeviceDescription}
                             type="text"
                         />
                         <InputField

@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode, FC } from "react";
+import React, {
+    createContext,
+    useContext,
+    useState,
+    ReactNode,
+    FC,
+} from "react";
 
 interface DeviceInfo {
     id: string;
@@ -15,14 +21,17 @@ interface WebSocketContextType {
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
-export const useWebSocket = (): WebSocketContextType | null => useContext(WebSocketContext);
+export const useWebSocket = (): WebSocketContextType | null =>
+    useContext(WebSocketContext);
 
 interface WebSocketProviderProps {
     children: ReactNode;
 }
 
 const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
-    const [webSockets, setWebSockets] = useState<Map<string, WebSocket>>(new Map());
+    const [webSockets, setWebSockets] = useState<Map<string, WebSocket>>(
+        new Map(),
+    );
 
     const addDevice = (device: DeviceInfo) => {
         if (webSockets.get(device.id)) {
@@ -31,8 +40,10 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
         }
         const websocket = new WebSocket(`ws://${device.ip}:${device.port}`);
 
-        websocket.onopen = () => console.log(`WebSocket Connected: ${device.id}`);
-        websocket.onerror = (error) => console.error(`WebSocket Error on ${device.id}: `, error);
+        websocket.onopen = () =>
+            console.log(`WebSocket Connected: ${device.id}`);
+        websocket.onerror = (error) =>
+            console.error(`WebSocket Error on ${device.id}: `, error);
         websocket.onclose = () => {
             console.log(`WebSocket Disconnected: ${device.id}`);
             webSockets.delete(device.id);
@@ -60,7 +71,9 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
     };
 
     return (
-        <WebSocketContext.Provider value={{ webSockets, addDevice, removeDevice, sendMessage }}>
+        <WebSocketContext.Provider
+            value={{ webSockets, addDevice, removeDevice, sendMessage }}
+        >
             {children}
         </WebSocketContext.Provider>
     );

@@ -1,8 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+/* global module */
 module.exports = {
-  content: [
-        "./src/**/*.{js,jsx,ts,tsx}",
-    ],
+    content: ["./src/**/*.{js,jsx,ts,tsx}"],
     theme: {
         extend: {},
         colors: {
@@ -14,8 +13,7 @@ module.exports = {
             "pol-ultra-red": "#FF0000",
             "pol-text-1": "#FFFFFF",
             "pol-text-2": "#000000",
-        }
+        },
     },
     plugins: [],
-}
-
+};

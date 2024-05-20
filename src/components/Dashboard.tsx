@@ -1,7 +1,7 @@
 import React, { FC, useState } from "react";
 import { Tab } from "@headlessui/react";
 
-import { Flower } from "../interfaces/interfaces";
+import { Flower } from "../lib/interfaces/interfaces";
 import ControlGrid from "./pollination_control/ControlGrid";
 import MyceliumGrid from "./flower_mycelium/MyceliumGrid";
 
@@ -11,9 +11,22 @@ function classNames(...classes: string[]) {
 
 const Dashboard: FC = () => {
     const [flowers, setFlowers] = useState<Record<string, Flower>>({});
+    const [controlCards, setControlCards] = useState<Record<string, Flower>>(
+        {},
+    );
 
     const categories = [
-        { name: "Pollination Control", component: <ControlGrid /> },
+        {
+            name: "Pollination Control",
+            component: (
+                <ControlGrid
+                    cards={controlCards}
+                    setControlCards={setControlCards}
+                    flowers={flowers}
+                    setFlowers={setFlowers}
+                />
+            ),
+        },
         {
             name: "Flowers",
             component: (

@@ -1,5 +1,5 @@
 import React from "react";
-import WebSocketProvider from "./provider/WebSocketProvider";
+import WebSocketProvider from "./lib/provider/WebSocketProvider";
 import Dashboard from "./components/Dashboard";
 
 const App: React.FC = () => {

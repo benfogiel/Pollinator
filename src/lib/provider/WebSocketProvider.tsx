@@ -34,22 +34,29 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
     );
 
     const addDevice = (device: DeviceInfo) => {
-        if (webSockets.get(device.id)) {
-            console.error("Device websocket is already connected.");
-            return;
-        }
-        const websocket = new WebSocket(`ws://${device.ip}:${device.port}`);
+        return new Promise<void>((resolve, reject) => {
+            if (webSockets.get(device.id)) {
+                console.error("Device websocket is already connected.");
+                reject(new Error("Device websocket is already connected."));
+                return;
+            }
+            const websocket = new WebSocket(`ws://${device.ip}:${device.port}`);
 
-        websocket.onopen = () =>
-            console.log(`WebSocket Connected: ${device.id}`);
-        websocket.onerror = (error) =>
-            console.error(`WebSocket Error on ${device.id}: `, error);
-        websocket.onclose = () => {
-            console.log(`WebSocket Disconnected: ${device.id}`);
-            webSockets.delete(device.id);
-        };
+            websocket.onopen = () => {
+                console.log(`WebSocket Connected: ${device.id}`);
+                resolve();
+            };
+            websocket.onerror = (error) => {
+                console.error(`WebSocket Error on ${device.id}: `, error);
+                reject(new Error(`WebSocket Error on ${device.id}: ${error}`));
+            };
+            websocket.onclose = () => {
+                console.log(`WebSocket Disconnected: ${device.id}`);
+                removeDevice(device.id);
+            };
 
-        setWebSockets(new Map(webSockets.set(device.id, websocket)));
+            setWebSockets(new Map(webSockets.set(device.id, websocket)));
+        });
     };
 
     const removeDevice = (deviceId: string) => {

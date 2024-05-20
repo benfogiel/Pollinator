@@ -1,6 +1,6 @@
 import React, { FC } from "react";
-import { Box } from "@radix-ui/themes";
 
+import Box from "../common/Box";
 import { Card } from "../common/Card";
 
 interface ControlCardProps {
@@ -18,23 +18,12 @@ const ControlCard: FC<ControlCardProps> = ({
     selected,
     onClick,
 }) => {
-    const boxStyle = {
-        backgroundColor: "var(--pol-bg-1)",
-        borderRadius: "10px",
-        margin: "10px",
-        border: "none",
-        cursor: "pointer",
-    };
-    if (selected) {
-        boxStyle.border = "2px solid var(--pol-ultra-red)";
-        boxStyle.margin = "8px";
-    }
-
     return (
         <Box
+            id={id}
             maxWidth="360px"
             minHeight="120px"
-            style={boxStyle}
+            selected={selected || false}
             onClick={() => onClick(id)}
         >
             <Card label={label} description={description} />

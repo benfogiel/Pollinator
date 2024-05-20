@@ -1,7 +1,8 @@
 import React, { FC } from "react";
-import { Box, Text } from "@radix-ui/themes";
+import { Text } from "@radix-ui/themes";
 
-import { Flower } from "../../interfaces/interfaces";
+import Box from "../common/Box";
+import { Flower } from "../../lib/interfaces/interfaces";
 import { Card } from "../common/Card";
 
 export interface FlowerCardProps {
@@ -11,53 +12,42 @@ export interface FlowerCardProps {
     onClick: (id: string) => void;
 }
 
-const FlowerCard: FC<FlowerCardProps> = ({
-    id,
-    flowerParams,
-    selected,
-    onClick,
-}) => {
-    const boxStyle = {
-        backgroundColor: "var(--pol-bg-1)",
-        borderRadius: "10px",
-        margin: "10px",
-        border: "none",
-        cursor: "pointer",
-    };
-    if (selected) {
-        boxStyle.border = "2px solid pol-ultra-red";
-        boxStyle.margin = "8px";
-    }
-
+const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
+    HTMLDivElement,
+    FlowerCardProps
+>((props, ref) => {
     return (
-        <Box
-            maxWidth="360px"
-            minHeight="120px"
-            style={boxStyle}
-            onClick={() => onClick(id)}
-        >
-            {flowerParams ? (
-                <Card
-                    label={flowerParams.name}
-                    description={flowerParams.description}
-                />
-            ) : (
-                <Text
-                    style={{
-                        color: "var(--pol-ultra-red)",
-                        fontWeight: "bold",
-                        fontSize: "24px",
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "100%",
-                    }}
-                >
-                    +
-                </Text>
-            )}
-        </Box>
+        <div ref={ref}>
+            <Box
+                id={props.id}
+                selected={props.selected || false}
+                maxWidth="360px"
+                minHeight="120px"
+                onClick={() => props.onClick(props.id)}
+            >
+                {props.flowerParams ? (
+                    <Card
+                        label={props.flowerParams.name}
+                        description={props.flowerParams.description}
+                    />
+                ) : (
+                    <Text
+                        style={{
+                            color: "var(--pol-ultra-red)",
+                            fontWeight: "bold",
+                            fontSize: "24px",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: "100%",
+                        }}
+                    >
+                        +
+                    </Text>
+                )}
+            </Box>
+        </div>
     );
-};
+});
 
 export default FlowerCard;

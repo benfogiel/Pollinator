@@ -4,7 +4,8 @@ import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
 import { v4 as uuid } from "uuid";
 
-import { Flower } from "../../interfaces/interfaces";
+import { Flower } from "../../lib/interfaces/interfaces";
+import { updateFlower } from "../../lib/util";
 import FlowerCard from "./FlowerCard";
 import NurseryModal from "./NurseryModal";
 
@@ -18,11 +19,6 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
 
     const selectCard = (id: string) => {
         setSelectedCard(id);
-    };
-
-    const updateFlower = (flower: Flower) => {
-        flowers[flower.id] = flower;
-        setFlowers({ ...flowers });
     };
 
     return (
@@ -54,7 +50,9 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                         flowerCard={
                             <FlowerCard id={uuid()} onClick={selectCard} />
                         }
-                        updateFlower={updateFlower}
+                        updateFlower={(flower) =>
+                            updateFlower(flower, flowers, setFlowers)
+                        }
                     />
                 }
             </Grid>

@@ -1,8 +1,8 @@
 import React, { FC, ReactElement, useState, useRef } from "react";
-import { useWebSocket } from "../../provider/WebSocketProvider";
 import * as Dialog from "@radix-ui/react-dialog";
 
-import { Flower } from "../../interfaces/interfaces";
+import { useWebSocket } from "../../lib/provider/WebSocketProvider";
+import { Flower } from "../../lib/interfaces/interfaces";
 import { FlowerCardProps } from "./FlowerCard";
 import InputField from "../common/InputField";
 
@@ -12,12 +12,11 @@ interface NurseryModalProps {
     updateFlower: (flowerParams: Flower) => void;
 }
 
-const NurseryModal: FC<NurseryModalProps> = ({
-    key,
-    flowerCard,
-    updateFlower,
-}) => {
-    const flowerParams: Flower | undefined = flowerCard.props.flowerParams;
+const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
+    const websocketContext = useWebSocket();
+
+    const flowerParams: Flower | undefined =
+        props.flowerCard.props.flowerParams;
 
     const [deviceName, setDeviceName] = useState(
         flowerParams ? flowerParams.name : "",
@@ -31,28 +30,31 @@ const NurseryModal: FC<NurseryModalProps> = ({
     const [port, setPort] = useState(
         flowerParams ? flowerParams.port.toString() : "81",
     );
-    const websocketContext = useWebSocket();
     const closeRef: React.MutableRefObject<HTMLButtonElement | null> =
         useRef(null);
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const portNumber = parseInt(port, 10);
-        const deviceId = flowerCard.props.id;
+        const deviceId = props.flowerCard.props.id;
         if (websocketContext && deviceId && ipAddress && port) {
-            websocketContext.addDevice({
-                id: deviceId,
-                ip: ipAddress,
-                port: portNumber,
-            });
-            updateFlower({
-                id: deviceId,
-                name: deviceName,
-                description: deviceDescription,
-                ip: ipAddress,
-                port: portNumber,
-            });
-            handleClose();
+            try {
+                await websocketContext.addDevice({
+                    id: deviceId,
+                    ip: ipAddress,
+                    port: portNumber,
+                });
+                props.updateFlower({
+                    id: deviceId,
+                    name: deviceName,
+                    description: deviceDescription,
+                    ip: ipAddress,
+                    port: portNumber,
+                });
+                handleClose();
+            } catch (err) {
+                alert("Failed to connect to device");
+            }
         }
     };
 
@@ -66,8 +68,8 @@ const NurseryModal: FC<NurseryModalProps> = ({
 
     return (
         <>
-            <Dialog.Root key={key}>
-                <Dialog.Trigger asChild>{flowerCard}</Dialog.Trigger>
+            <Dialog.Root>
+                <Dialog.Trigger asChild>{props.flowerCard}</Dialog.Trigger>
                 <Dialog.Overlay className="fixed inset-0 bg-const-black bg-opacity-50 z-40" />
                 <Dialog.Portal>
                     <Dialog.Content

@@ -41,7 +41,9 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                                     onClick={selectCard}
                                 />
                             }
-                            updateFlower={updateFlower}
+                            updateFlower={(flower) =>
+                                updateFlower(flower, flowers, setFlowers)
+                            }
                         />
                     );
                 })}

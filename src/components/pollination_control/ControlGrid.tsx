@@ -1,7 +1,8 @@
-import React, { FC, useState } from "react";
+import React, { FC, useState, useEffect, useRef } from "react";
 import "@radix-ui/themes/styles.css";
 import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
+import { HexColorPicker } from "react-colorful";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
 import { Flower, Control } from "../../lib/interfaces/interfaces";
@@ -21,16 +22,23 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
+    const [customColor, setCustomColor] = useState<string>("#9F00FF");
 
     const controlCards: Control[] = [
         {
             id: "0",
+            name: "Custom",
+            description: "Pollinate with your light",
+            command: customColor,
+        },
+        {
+            id: "1",
             name: "White",
             description: "Pollinate with white light",
             command: "white",
         },
         {
-            id: "1",
+            id: "2",
             name: "Red",
             description: "Pollinate with red light",
             command: "red",
@@ -41,16 +49,28 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         const card = controlCards[cardIndex];
         setSelectedCard(cardIndex);
         // updateFlower(props.flowers[id], props.flowers, props.setFlowers);
+        setFlowerColor(card.command);
+    };
+
+    const setFlowerColor = (color: string) => {
         if (websocketContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
                 websocketContext.sendMessage(
                     flower.id,
-                    createPollinationSequence([card.command]),
+                    createPollinationSequence([color]),
                 );
             }
         }
     };
+
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            setFlowerColor(customColor);
+        }, 1000);
+
+        return () => clearTimeout(debounceTimeout);
+    }, [customColor]);
 
     return (
         <>
@@ -77,6 +97,12 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
                         />
                     );
                 })}
+                {selectedCard === 0 && (
+                    <HexColorPicker
+                        color={customColor}
+                        onChange={setCustomColor}
+                    />
+                )}
             </Grid>
         </>
     );

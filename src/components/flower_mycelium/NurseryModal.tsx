@@ -30,6 +30,7 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
     const [port, setPort] = useState(
         flowerParams ? flowerParams.port.toString() : "81",
     );
+    const [isConnecting, setIsConnecting] = useState<boolean>(false);
     const closeRef: React.MutableRefObject<HTMLButtonElement | null> =
         useRef(null);
 
@@ -39,11 +40,13 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
         const deviceId = props.flowerCard.props.id;
         if (websocketContext && deviceId && ipAddress && port) {
             try {
+                setIsConnecting(true);
                 await websocketContext.addDevice({
                     id: deviceId,
                     ip: ipAddress,
                     port: portNumber,
                 });
+                setIsConnecting(false);
                 props.updateFlower({
                     id: deviceId,
                     name: deviceName,
@@ -122,7 +125,7 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                                     type="submit"
                                     className="bg-pol-ultra-red text-pol-text-2 px-4 py-2 rounded hover:bg-red-600"
                                 >
-                                    Connect
+                                    {isConnecting ? "Connecting..." : "Connect"}
                                 </button>
                             </div>
                         </form>

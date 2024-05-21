@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useRef } from "react";
+import React, { FC, useState, useEffect } from "react";
 import "@radix-ui/themes/styles.css";
 import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
@@ -101,6 +101,10 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
                     <HexColorPicker
                         color={customColor}
                         onChange={setCustomColor}
+                        style={{
+                            position: "absolute",
+                            marginTop: "135px",
+                        }}
                     />
                 )}
             </Grid>

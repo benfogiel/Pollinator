@@ -8,6 +8,7 @@ export interface BoxProps {
     onClick: (id: string | number) => void;
     selected: boolean;
     children: React.ReactNode;
+    style?: React.CSSProperties;
 }
 
 const Box: FC<BoxProps> = (props) => {
@@ -18,6 +19,7 @@ const Box: FC<BoxProps> = (props) => {
         padding: "10px",
         border: props.selected ? "2px solid var(--pol-ultra-red)" : "none",
         cursor: "pointer",
+        ...props.style,
     };
 
     return (

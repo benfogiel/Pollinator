@@ -24,6 +24,11 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
                 maxWidth="360px"
                 minHeight="120px"
                 onClick={() => props.onClick(props.id)}
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
             >
                 {props.flowerParams ? (
                     <Card
@@ -36,10 +41,6 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
                             color: "var(--pol-ultra-red)",
                             fontWeight: "bold",
                             fontSize: "24px",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            height: "100%",
                         }}
                     >
                         +

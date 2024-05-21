@@ -44,7 +44,7 @@ export default function RootLayout({
                     content="black"
                 />
                 <meta name="apple-mobile-web-app-title" content="Pollinator" />
-                <meta name="theme-color" content="#000000" />
+                <meta name="theme-color" content="#191919" />
             </head>
             <body>
                 <div id="root">{children}</div>

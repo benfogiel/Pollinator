@@ -6,6 +6,7 @@ interface InputFieldProps {
     value: string;
     setValue: (value: string) => void;
     type?: string;
+    required?: boolean;
 }
 
 const InputField: FC<InputFieldProps> = ({
@@ -14,6 +15,7 @@ const InputField: FC<InputFieldProps> = ({
     value,
     setValue,
     type,
+    required = true,
 }) => (
     <div>
         <label className="block text-sm text-pol-text-1 font-bold mb-1">
@@ -26,7 +28,7 @@ const InputField: FC<InputFieldProps> = ({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder}
-            required
+            required={required}
         />
     </div>
 );

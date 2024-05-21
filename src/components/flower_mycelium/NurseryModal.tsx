@@ -80,7 +80,7 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                         onInteractOutside={(event) => event.preventDefault()}
                     >
                         <Dialog.Title className="text-lg font-bold text-pol-ultra-red">
-                            Connect to Device
+                            Connect to Flower
                         </Dialog.Title>
                         <Dialog.Close ref={closeRef} className="hidden" />
                         <form
@@ -88,18 +88,19 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                             className="space-y-4 pt-5"
                         >
                             <InputField
-                                label="Device Name"
+                                label="Flower Name"
                                 placeholder="Enter Device Name"
                                 value={deviceName}
                                 setValue={setDeviceName}
                                 type="text"
                             />
                             <InputField
-                                label="Device Description"
+                                label="Flower Description"
                                 placeholder="Enter Device Description"
                                 value={deviceDescription}
                                 setValue={setDeviceDescription}
                                 type="text"
+                                required={false}
                             />
                             <InputField
                                 label="IP Address"
@@ -123,9 +124,9 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                                 </Dialog.Close>
                                 <button
                                     type="submit"
-                                    className="bg-pol-ultra-red text-pol-text-2 px-4 py-2 rounded hover:bg-red-600"
+                                    className="bg-pol-ultra-red text-pol-text-2 font-medium px-4 py-2 rounded hover:bg-red-600"
                                 >
-                                    {isConnecting ? "Connecting..." : "Connect"}
+                                    {isConnecting ? "Conn.." : "Connect"}
                                 </button>
                             </div>
                         </form>

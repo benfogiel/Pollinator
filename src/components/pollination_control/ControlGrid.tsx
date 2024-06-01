@@ -43,6 +43,12 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
             description: "Pollinate with red light",
             command: "red",
         },
+        {
+            id: "3",
+            name: "Rainbow Swirl",
+            description: "Pollinate rainbow swirl magic",
+            command: "rainbow_swirl",
+        },
     ];
 
     const selectCard = (cardIndex: number) => {

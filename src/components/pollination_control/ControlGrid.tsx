@@ -6,7 +6,7 @@ import { HexColorPicker } from "react-colorful";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
 import { Flower, Control } from "../../lib/interfaces";
-import { createPollinationSequence } from "../../lib/util";
+import { createPollinationSequence, updateFlowers } from "../../lib/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 
@@ -51,11 +51,23 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         },
     ];
 
-    const selectCard = (cardIndex: number) => {
-        const card = controlCards[cardIndex];
-        setSelectedCard(cardIndex);
-        // updateFlower(props.flowers[id], props.flowers, props.setFlowers);
+    const selectCard = (cardId: number) => {
+        const card = controlCards[cardId];
+        setSelectedCard(cardId);
         setFlowerColor(card.command);
+
+        // send the command to the flower and update flowers
+        if (websocketContext) {
+            for (const index in selectedFlowers) {
+                const flower = selectedFlowers[index];
+                websocketContext.sendMessage(
+                    flower.id,
+                    createPollinationSequence([card.command]),
+                );
+                flower.controlCardId = cardId;
+                updateFlowers(flower, props.flowers, props.setFlowers);
+            }
+        }
     };
 
     const setFlowerColor = (color: string) => {
@@ -77,6 +89,21 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
+
+    useEffect(() => {
+        const commonControlCards: Set<number | undefined> = new Set(
+            selectedFlowers.map((f) => f.controlCardId),
+        );
+        let cardId: number | null;
+        if (commonControlCards.size === 1) {
+            // the selected flowers do have the same control card selected
+            cardId = commonControlCards.values().next().value;
+        } else {
+            // the selected flowers don't have the same control card selected
+            cardId = null;
+        }
+        setSelectedCard(cardId);
+    }, [selectedFlowers]);
 
     return (
         <>

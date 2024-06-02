@@ -5,7 +5,7 @@ export interface Flower {
     ip: string;
     port: number;
     connected?: boolean;
-    controlCardId?: string;
+    controlCardId?: number;
 }
 
 export interface Control {

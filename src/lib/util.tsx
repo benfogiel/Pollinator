@@ -2,14 +2,16 @@ import { Flower } from "./interfaces";
 
 export const updateFlowers = (
     flower: Flower,
-    flowers: Record<string, Flower>,
-    setFlowers: (flowers: Record<string, Flower>) => void,
+    setFlowers: (
+        flowersUpdater: (
+            prevFlowers: Record<string, Flower>,
+        ) => Record<string, Flower>,
+    ) => void,
 ) => {
-    const updatedFlowers = {
-        ...flowers,
+    setFlowers((prevFlowers) => ({
+        ...prevFlowers,
         [flower.id]: flower,
-    };
-    setFlowers(updatedFlowers);
+    }));
 };
 
 export const createPollinationSequence = (sequence: string[]) => {

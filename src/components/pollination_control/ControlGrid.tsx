@@ -14,7 +14,11 @@ interface ControlCardProps {
     cards: Record<string, Flower>;
     setControlCards: (controlCards: Record<string, Flower>) => void;
     flowers: Record<string, Flower>;
-    setFlowers: (flowers: Record<string, Flower>) => void;
+    setFlowers: (
+        flowersUpdater: (
+            prevFlowers: Record<string, Flower>,
+        ) => Record<string, Flower>,
+    ) => void;
 }
 
 const ControlGrid: FC<ControlCardProps> = (props) => {
@@ -65,7 +69,7 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
                     createPollinationSequence([card.command]),
                 );
                 flower.controlCardId = cardId;
-                updateFlowers(flower, props.flowers, props.setFlowers);
+                updateFlowers(flower, props.setFlowers);
             }
         }
     };

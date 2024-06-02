@@ -15,7 +15,11 @@ import { connectFlower } from "../../lib/service/flower";
 
 interface MyceliumGridProps {
     flowers: Record<string, Flower>;
-    setFlowers: (flowers: Record<string, Flower>) => void;
+    setFlowers: (
+        flowersUpdater: (
+            prevFlowers: Record<string, Flower>,
+        ) => Record<string, Flower>,
+    ) => void;
 }
 
 const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
@@ -33,25 +37,28 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
         await Promise.all(
             ancestors.map(async (flower: Flower) => {
                 const matchingIdx: number = Object.values(flowers).findIndex(
-                    (f) => f.ip == flower.ip,
+                    (f) =>
+                        `${f.ip}:${f.port}` === `${flower.ip}:${flower.port}`,
                 );
                 if (
                     matchingIdx != -1 &&
                     Object.values(flowers)[matchingIdx].connected
                 ) {
                     console.debug(
-                        `Skipping auto-connect for ${flower.ip} because it is already connected.`,
+                        `Skipping auto-connect for ${flower.ip}:${flower.port} because it is already connected.`,
                     );
                     return;
                 }
-                console.debug(`Attempting to auto-connect to ${flower.ip}`);
+                console.debug(
+                    `Attempting to auto-connect to ${flower.ip}:${flower.port}`,
+                );
                 await connectFlower(
                     websocketContext,
                     flower,
-                    (f) => updateFlowers(f, flowers, setFlowers),
+                    (f) => updateFlowers(f, setFlowers),
                     (f) => {
                         f.connected = false;
-                        updateFlowers(f, flowers, setFlowers);
+                        updateFlowers(f, setFlowers);
                     },
                     () =>
                         console.debug(
@@ -91,7 +98,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                                 />
                             }
                             updateFlowers={(flower) =>
-                                updateFlowers(flower, flowers, setFlowers)
+                                updateFlowers(flower, setFlowers)
                             }
                         />
                     );
@@ -102,7 +109,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                             <FlowerCard id={uuid()} onClick={selectCard} />
                         }
                         updateFlowers={(flower) =>
-                            updateFlowers(flower, flowers, setFlowers)
+                            updateFlowers(flower, setFlowers)
                         }
                     />
                 }

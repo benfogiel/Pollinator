@@ -36,8 +36,11 @@ export const updateFlowerAncestry = (flower: Flower): void => {
         ancestors = [];
     }
 
-    // delete any ancestors with the same IP
-    ancestors = ancestors.filter((ancestor) => ancestor.ip !== flower.ip);
+    // delete any ancestors with the same IP and Port
+    ancestors = ancestors.filter(
+        (ancestor) =>
+            `${ancestor.ip}:${ancestor.port}` !== `${flower.ip}:${flower.port}`,
+    );
 
     localStorage.setItem(
         FLOWER_ANCESTRY_LS_KEY,

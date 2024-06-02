@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 const { WebSocketServer } = require("ws");
 
 const port = 81;

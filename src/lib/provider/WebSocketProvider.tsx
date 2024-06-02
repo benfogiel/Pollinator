@@ -6,18 +6,7 @@ import React, {
     FC,
 } from "react";
 
-interface DeviceInfo {
-    id: string;
-    ip: string;
-    port: number;
-}
-
-interface WebSocketContextType {
-    webSockets: Map<string, WebSocket>;
-    addDevice: (device: DeviceInfo) => void;
-    removeDevice: (deviceId: string) => void;
-    sendMessage: (deviceId: string, message: string) => void;
-}
+import { WebSocketContextType, DeviceInfo } from "../interfaces";
 
 const WebSocketContext = createContext<WebSocketContextType | null>(null);
 
@@ -33,26 +22,37 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
         new Map(),
     );
 
-    const addDevice = (device: DeviceInfo) => {
+    const addDevice = (device: DeviceInfo, timeoutMs: number = 5000) => {
+        const address: string = `${device.ip}:${device.port}`;
         return new Promise<void>((resolve, reject) => {
             if (webSockets.get(device.id)) {
                 console.error("Device websocket is already connected.");
                 reject(new Error("Device websocket is already connected."));
                 return;
             }
-            const websocket = new WebSocket(`ws://${device.ip}:${device.port}`);
+            const websocket = new WebSocket(`ws://${address}`);
+
+            // set connection timeout
+            const connTimeout = setTimeout(() => {
+                websocket.close();
+                reject(new Error(`WebSocket connection timed out: ${address}`));
+            }, timeoutMs);
 
             websocket.onopen = () => {
-                console.log(`WebSocket Connected: ${device.id}`);
+                console.info(`WebSocket Connected to ${address}`);
+                clearTimeout(connTimeout);
+                device.onConnect && device.onConnect();
                 resolve();
             };
             websocket.onerror = (error) => {
-                console.error(`WebSocket Error on ${device.id}: `, error);
-                reject(new Error(`WebSocket Error on ${device.id}: ${error}`));
+                clearTimeout(connTimeout);
+                reject(new Error(`WebSocket Error on ${address} -- ${error}`));
             };
             websocket.onclose = () => {
-                console.log(`WebSocket Disconnected: ${device.id}`);
+                console.debug(`WebSocket Disconnected: ${address}`);
+                clearTimeout(connTimeout);
                 removeDevice(device.id);
+                device.onDisconnect && device.onDisconnect();
             };
 
             setWebSockets(new Map(webSockets.set(device.id, websocket)));

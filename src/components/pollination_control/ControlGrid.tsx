@@ -5,7 +5,7 @@ import { isMobile } from "react-device-detect";
 import { HexColorPicker } from "react-colorful";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
-import { Flower, Control } from "../../lib/interfaces/interfaces";
+import { Flower, Control } from "../../lib/interfaces";
 import { createPollinationSequence } from "../../lib/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";

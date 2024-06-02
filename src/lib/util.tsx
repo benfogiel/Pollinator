@@ -1,6 +1,6 @@
-import { Flower } from "./interfaces/interfaces";
+import { Flower } from "./interfaces";
 
-export const updateFlower = (
+export const updateFlowers = (
     flower: Flower,
     flowers: Record<string, Flower>,
     setFlowers: (flowers: Record<string, Flower>) => void,

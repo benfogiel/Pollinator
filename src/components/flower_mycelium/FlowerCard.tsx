@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { Text } from "@radix-ui/themes";
 
 import Box from "../common/Box";
-import { Flower } from "../../lib/interfaces/interfaces";
+import { Flower } from "../../lib/interfaces";
 import { Card } from "../common/Card";
 
 export interface FlowerCardProps {
@@ -32,8 +32,9 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
             >
                 {props.flowerParams ? (
                     <Card
-                        label={props.flowerParams.name}
+                        title={props.flowerParams.name}
                         description={props.flowerParams.description}
+                        status={props.flowerParams.connected}
                     />
                 ) : (
                     <Text

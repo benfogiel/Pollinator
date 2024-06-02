@@ -21,6 +21,8 @@ body {
     background-color: var(--pol-bg-0);
 }
 
+/* ---- Spinner ---- */
+
 .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
     border-left-color: var(--pol-text-1);
@@ -37,4 +39,20 @@ body {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* ---- Status Circle ---- */
+
+.circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.good {
+    background-color: green;
+}
+
+.bad {
+    background-color: red;
 }

@@ -2,15 +2,16 @@ import React, { FC, ReactElement, useState, useRef } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
-import { Flower } from "../../lib/interfaces/interfaces";
+import { Flower } from "../../lib/interfaces";
 import { FlowerCardProps } from "./FlowerCard";
 import InputField from "../common/InputField";
 import { updateFlowerAncestry } from "../../lib/service/flower_ancestry";
+import { connectFlower } from "../../lib/service/flower";
 
 interface NurseryModalProps {
     key?: string;
     flowerCard: ReactElement<FlowerCardProps>;
-    updateFlower: (flowerParams: Flower) => void;
+    updateFlowers: (flower: Flower) => void;
 }
 
 const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
@@ -40,26 +41,26 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
         if (websocketContext && ipAddress && port) {
             const flower: Flower = {
                 id: props.flowerCard.props.id,
+                connected: false,
                 name: deviceName,
                 description: deviceDescription,
                 ip: ipAddress,
                 port: parseInt(port, 10),
             };
-            try {
-                setIsConnecting(true);
-                await websocketContext.addDevice({
-                    id: flower.id,
-                    ip: flower.ip,
-                    port: flower.port,
-                });
-                // successfully connected
-                props.updateFlower(flower);
-                updateFlowerAncestry(flower);
-
-                handleClose();
-            } catch (err) {
-                alert("Failed to connect to device");
-            }
+            await connectFlower(
+                websocketContext,
+                flower,
+                (f) => {
+                    props.updateFlowers(f);
+                    updateFlowerAncestry(f);
+                    handleClose();
+                },
+                (f) => {
+                    f.connected = false;
+                    props.updateFlowers(f);
+                },
+                () => alert("Failed to connect to device"),
+            );
             setIsConnecting(false);
         }
     };

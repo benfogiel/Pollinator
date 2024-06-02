@@ -5,12 +5,13 @@ import { isMobile } from "react-device-detect";
 import { v4 as uuid } from "uuid";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
-import { Flower } from "../../lib/interfaces/interfaces";
-import { updateFlower } from "../../lib/util";
+import { Flower } from "../../lib/interfaces";
+import { updateFlowers } from "../../lib/util";
 import FlowerCard from "./FlowerCard";
 import NurseryModal from "./NurseryModal";
 import Button from "../common/Button";
 import { getFlowerAncestry } from "src/lib/service/flower_ancestry";
+import { connectFlower } from "../../lib/service/flower";
 
 interface MyceliumGridProps {
     flowers: Record<string, Flower>;
@@ -31,27 +32,32 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
         const ancestors: Array<Flower> = getFlowerAncestry();
         await Promise.all(
             ancestors.map(async (flower: Flower) => {
+                const matchingIdx: number = Object.values(flowers).findIndex(
+                    (f) => f.ip == flower.ip,
+                );
                 if (
-                    Object.values(flowers).findIndex(
-                        (f) => f.ip == flower.ip,
-                    ) != -1
+                    matchingIdx != -1 &&
+                    Object.values(flowers)[matchingIdx].connected
                 ) {
                     console.debug(
-                        `Skipping auto-connect for ${flower.ip} because it already exists in flowers`,
+                        `Skipping auto-connect for ${flower.ip} because it is already connected.`,
                     );
                     return;
                 }
-                try {
-                    console.debug(`Attempting to auto-connect to ${flower.ip}`);
-                    await websocketContext.addDevice({
-                        id: flower.id,
-                        ip: flower.ip,
-                        port: flower.port,
-                    });
-                    updateFlower(flower, flowers, setFlowers);
-                } catch (err) {
-                    console.debug(`Failed to auto-connect to ${flower.ip}`);
-                }
+                console.debug(`Attempting to auto-connect to ${flower.ip}`);
+                await connectFlower(
+                    websocketContext,
+                    flower,
+                    (f) => updateFlowers(f, flowers, setFlowers),
+                    (f) => {
+                        f.connected = false;
+                        updateFlowers(f, flowers, setFlowers);
+                    },
+                    () =>
+                        console.debug(
+                            `Failed to auto-connect to ${flower.ip}:${flower.port}`,
+                        ),
+                );
             }),
         );
     };
@@ -84,8 +90,8 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                                     onClick={selectCard}
                                 />
                             }
-                            updateFlower={(flower) =>
-                                updateFlower(flower, flowers, setFlowers)
+                            updateFlowers={(flower) =>
+                                updateFlowers(flower, flowers, setFlowers)
                             }
                         />
                     );
@@ -95,8 +101,8 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                         flowerCard={
                             <FlowerCard id={uuid()} onClick={selectCard} />
                         }
-                        updateFlower={(flower) =>
-                            updateFlower(flower, flowers, setFlowers)
+                        updateFlowers={(flower) =>
+                            updateFlowers(flower, flowers, setFlowers)
                         }
                     />
                 }

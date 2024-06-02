@@ -1,7 +1,7 @@
 // Service to retrieve previously connected flowers
 
 import { FLOWER_ANCESTRY_LS_KEY } from "../constants";
-import { Flower } from "../interfaces/interfaces";
+import { Flower } from "../interfaces";
 
 export const getFlowerAncestry = (): Array<Flower> => {
     // if not connected to DB, use local storage

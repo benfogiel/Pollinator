@@ -1,7 +1,7 @@
 import React, { useState, FC, useEffect } from "react";
 import { Box as RadixBox, CheckboxCards, Flex, Text } from "@radix-ui/themes";
 
-import { Flower } from "../../lib/interfaces/interfaces";
+import { Flower } from "../../lib/interfaces";
 import Box from "./Box";
 
 interface FlowerSelectorProps {
@@ -30,35 +30,43 @@ export const FlowerSelector: FC<FlowerSelectorProps> = (props) => {
                 onValueChange={setSelectedValues}
                 columns={{ initial: "4", sm: "5" }}
             >
-                {props.flowers.map((flower) => (
-                    <CheckboxCards.Item key={flower.id} value={flower.id}>
-                        <Flex direction="column" width="100%">
-                            <Box
-                                id={flower.id}
-                                maxWidth="75px"
-                                minHeight="25px"
-                                onClick={() => console.log(flower)}
-                                selected={selectedValues.includes(flower.id)}
-                                style={{
-                                    padding: 10,
-                                    display: "flex",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
+                {props.flowers.map(
+                    (flower) =>
+                        flower.connected && (
+                            <CheckboxCards.Item
+                                key={flower.id}
+                                value={flower.id}
                             >
-                                <Text
-                                    weight="bold"
-                                    style={{
-                                        color: "var(--pol-text-1)",
-                                        fontSize: "12px",
-                                    }}
-                                >
-                                    {flower.name}
-                                </Text>
-                            </Box>
-                        </Flex>
-                    </CheckboxCards.Item>
-                ))}
+                                <Flex direction="column" width="100%">
+                                    <Box
+                                        id={flower.id}
+                                        maxWidth="75px"
+                                        minHeight="25px"
+                                        onClick={() => console.log(flower)}
+                                        selected={selectedValues.includes(
+                                            flower.id,
+                                        )}
+                                        style={{
+                                            padding: 10,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <Text
+                                            weight="bold"
+                                            style={{
+                                                color: "var(--pol-text-1)",
+                                                fontSize: "12px",
+                                            }}
+                                        >
+                                            {flower.name}
+                                        </Text>
+                                    </Box>
+                                </Flex>
+                            </CheckboxCards.Item>
+                        ),
+                )}
             </CheckboxCards.Root>
         </RadixBox>
     );

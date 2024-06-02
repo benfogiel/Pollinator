@@ -26,7 +26,7 @@ const ControlCard: FC<ControlCardProps> = ({
             selected={selected || false}
             onClick={() => onClick(id)}
         >
-            <Card label={label} description={description} />
+            <Card title={label} description={description} />
         </Box>
     );
 };

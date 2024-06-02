@@ -39,6 +39,12 @@ export const FlowerSelector: FC<FlowerSelectorProps> = (props) => {
                                 minHeight="25px"
                                 onClick={() => console.log(flower)}
                                 selected={selectedValues.includes(flower.id)}
+                                style={{
+                                    padding: 10,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
                             >
                                 <Text
                                     weight="bold"

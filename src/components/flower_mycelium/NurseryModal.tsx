@@ -5,6 +5,7 @@ import { useWebSocket } from "../../lib/provider/WebSocketProvider";
 import { Flower } from "../../lib/interfaces/interfaces";
 import { FlowerCardProps } from "./FlowerCard";
 import InputField from "../common/InputField";
+import { updateFlowerAncestry } from "../../lib/service/flower_ancestry";
 
 interface NurseryModalProps {
     key?: string;
@@ -36,28 +37,30 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        const portNumber = parseInt(port, 10);
-        const deviceId = props.flowerCard.props.id;
-        if (websocketContext && deviceId && ipAddress && port) {
+        if (websocketContext && ipAddress && port) {
+            const flower: Flower = {
+                id: props.flowerCard.props.id,
+                name: deviceName,
+                description: deviceDescription,
+                ip: ipAddress,
+                port: parseInt(port, 10),
+            };
             try {
                 setIsConnecting(true);
                 await websocketContext.addDevice({
-                    id: deviceId,
-                    ip: ipAddress,
-                    port: portNumber,
+                    id: flower.id,
+                    ip: flower.ip,
+                    port: flower.port,
                 });
-                setIsConnecting(false);
-                props.updateFlower({
-                    id: deviceId,
-                    name: deviceName,
-                    description: deviceDescription,
-                    ip: ipAddress,
-                    port: portNumber,
-                });
+                // successfully connected
+                props.updateFlower(flower);
+                updateFlowerAncestry(flower);
+
                 handleClose();
             } catch (err) {
                 alert("Failed to connect to device");
             }
+            setIsConnecting(false);
         }
     };
 
@@ -89,14 +92,14 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                         >
                             <InputField
                                 label="Flower Name"
-                                placeholder="Enter Device Name"
+                                placeholder="Name"
                                 value={deviceName}
                                 setValue={setDeviceName}
                                 type="text"
                             />
                             <InputField
                                 label="Flower Description"
-                                placeholder="Enter Device Description"
+                                placeholder="Description"
                                 value={deviceDescription}
                                 setValue={setDeviceDescription}
                                 type="text"
@@ -126,7 +129,11 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                                     type="submit"
                                     className="bg-pol-ultra-red text-pol-text-2 font-medium px-4 py-2 rounded hover:bg-red-600"
                                 >
-                                    {isConnecting ? "Conn.." : "Connect"}
+                                    {isConnecting ? (
+                                        <div className="spinner"></div>
+                                    ) : (
+                                        "Connect"
+                                    )}
                                 </button>
                             </div>
                         </form>

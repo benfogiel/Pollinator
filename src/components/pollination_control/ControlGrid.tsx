@@ -6,7 +6,7 @@ import { HexColorPicker } from "react-colorful";
 
 import { useWebSocket } from "../../lib/provider/WebSocketProvider";
 import { Flower, Control } from "../../lib/interfaces/interfaces";
-import { updateFlower, createPollinationSequence } from "../../lib/util";
+import { createPollinationSequence } from "../../lib/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 

@@ -47,6 +47,7 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                 ip: ipAddress,
                 port: parseInt(port, 10),
             };
+            setIsConnecting(true);
             await connectFlower(
                 websocketContext,
                 flower,

@@ -57,8 +57,11 @@ const NurseryModal: FC<NurseryModalProps> = (props: NurseryModalProps) => {
                     handleClose();
                 },
                 (f) => {
-                    f.connected = false;
-                    props.updateFlowers(f);
+                    if (f.connected) {
+                        // was previously connected, update flowers
+                        f.connected = false;
+                        props.updateFlowers(f);
+                    }
                 },
                 () => alert("Failed to connect to device"),
             );

@@ -22,7 +22,7 @@ const WebSocketProvider: FC<WebSocketProviderProps> = ({ children }) => {
         new Map(),
     );
 
-    const addDevice = (device: DeviceInfo, timeoutMs: number = 5000) => {
+    const addDevice = (device: DeviceInfo, timeoutMs: number = 20000) => {
         const address: string = `${device.ip}:${device.port}`;
         return new Promise<void>((resolve, reject) => {
             if (webSockets.get(device.id)) {

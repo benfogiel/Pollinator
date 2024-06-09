@@ -56,10 +56,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                     websocketContext,
                     flower,
                     (f) => updateFlowers(f, setFlowers),
-                    (f) => {
-                        f.connected = false;
-                        updateFlowers(f, setFlowers);
-                    },
+                    () => {},
                     () =>
                         console.debug(
                             `Failed to auto-connect to ${flower.ip}:${flower.port}`,

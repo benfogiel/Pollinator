@@ -72,10 +72,12 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         if (bleContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
-                bleContext.write(
-                    flower.id,
-                    createPollinationSequence([command]),
-                );
+                if (flower.connected) {
+                    bleContext.write(
+                        flower.id,
+                        createPollinationSequence([command]),
+                    );
+                }
             }
         }
     };

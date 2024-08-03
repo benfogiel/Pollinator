@@ -1,7 +1,7 @@
 import React, { FC, useState } from "react";
 import { Tab } from "@headlessui/react";
 
-import { Flower } from "../lib/interfaces";
+import { Flower } from "../helpers/interfaces";
 import ControlGrid from "./pollination_control/ControlGrid";
 import MyceliumGrid from "./flower_mycelium/MyceliumGrid";
 

@@ -2,10 +2,11 @@ import React, { FC } from "react";
 import { Text } from "@radix-ui/themes";
 
 import Box from "../common/Box";
-import { Flower } from "../../lib/interfaces";
+import { Flower } from "../../helpers/interfaces";
 import { Card } from "../common/Card";
 
 export interface FlowerCardProps {
+    key: string;
     id: string;
     flowerParams?: Flower;
     selected?: boolean;

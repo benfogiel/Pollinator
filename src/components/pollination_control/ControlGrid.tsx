@@ -4,9 +4,9 @@ import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
 import { HexColorPicker } from "react-colorful";
 
-import { useWebSocket } from "../../lib/provider/WebSocketProvider";
-import { Flower, Control } from "../../lib/interfaces";
-import { createPollinationSequence, updateFlowers } from "../../lib/util";
+import { useBLE } from "../../helpers/BLEProvider";
+import { Flower, Control } from "../../helpers/interfaces";
+import { createPollinationSequence, updateFlowers } from "../../helpers/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 
@@ -22,7 +22,7 @@ interface ControlCardProps {
 }
 
 const ControlGrid: FC<ControlCardProps> = (props) => {
-    const websocketContext = useWebSocket();
+    const bleContext = useBLE();
 
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
@@ -55,32 +55,26 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         },
     ];
 
-    const selectCard = (cardId: number) => {
+    const cardSelected = (cardId: number) => {
         const card = controlCards[cardId];
         setSelectedCard(cardId);
-        setFlowerColor(card.command);
+        sendFlowerCommand(card.command);
 
-        // send the command to the flower and update flowers
-        if (websocketContext) {
-            for (const index in selectedFlowers) {
-                const flower = selectedFlowers[index];
-                websocketContext.sendMessage(
-                    flower.id,
-                    createPollinationSequence([card.command]),
-                );
-                flower.controlCardId = cardId;
-                updateFlowers(flower, props.setFlowers);
-            }
+        // update flower cards
+        for (const index in selectedFlowers) {
+            const flower = selectedFlowers[index];
+            flower.controlCardId = cardId;
+            updateFlowers(flower, props.setFlowers);
         }
     };
 
-    const setFlowerColor = (color: string) => {
-        if (websocketContext) {
+    const sendFlowerCommand = (command: string) => {
+        if (bleContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
-                websocketContext.sendMessage(
+                bleContext.write(
                     flower.id,
-                    createPollinationSequence([color]),
+                    createPollinationSequence([command]),
                 );
             }
         }
@@ -88,8 +82,8 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
-            setFlowerColor(customColor);
-        }, 1000);
+            sendFlowerCommand(customColor);
+        }, 100);
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
@@ -130,7 +124,7 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
                             label={card.name}
                             description={card.description}
                             selected={i === selectedCard}
-                            onClick={selectCard}
+                            onClick={cardSelected}
                         />
                     );
                 })}

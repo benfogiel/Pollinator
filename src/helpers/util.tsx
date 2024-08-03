@@ -14,6 +14,23 @@ export const updateFlowers = (
     }));
 };
 
+export const flowerDisconnected = (
+    flowerId: string,
+    setFlowers: (
+        flowersUpdater: (
+            prevFlowers: Record<string, Flower>,
+        ) => Record<string, Flower>,
+    ) => void,
+) => {
+    setFlowers((prevFlowers) => {
+        const updatedFlowers = { ...prevFlowers };
+        if (updatedFlowers[flowerId] !== undefined) {
+            updatedFlowers[flowerId].connected = false;
+        }
+        return updatedFlowers;
+    });
+};
+
 export const createPollinationSequence = (sequence: string[]) => {
     return `{pollination_sequence: ${JSON.stringify(sequence)}}`;
 };

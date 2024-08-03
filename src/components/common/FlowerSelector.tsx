@@ -1,7 +1,7 @@
 import React, { useState, FC, useEffect } from "react";
 import { Box as RadixBox, CheckboxCards, Flex, Text } from "@radix-ui/themes";
 
-import { Flower } from "../../lib/interfaces";
+import { Flower } from "../../helpers/interfaces";
 import Box from "./Box";
 
 interface FlowerSelectorProps {

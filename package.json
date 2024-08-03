@@ -3,6 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@capacitor/cli": "^6.1.1",
+        "@capacitor/core": "^6.1.1",
+        "@capacitor/ios": "^6.1.1",
         "@headlessui/react": "^1.7.19",
         "@radix-ui/themes": "^3.0.2",
         "@types/jest": "^27.5.2",

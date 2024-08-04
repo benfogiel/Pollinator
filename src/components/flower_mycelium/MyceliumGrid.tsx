@@ -28,10 +28,16 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
     };
 
     const connectToBLE = async () => {
-        const device = await BLEContext?.connect((flowerId) =>
-            flowerDisconnected(flowerId, setFlowers),
-        );
-        if (!device || !device.name) return;
+        if (!BLEContext) return;
+        const device = await BLEContext.discoverDevice();
+        if (
+            !device ||
+            !device.name ||
+            !(await BLEContext.connect(device?.deviceId, (flowerId) =>
+                flowerDisconnected(flowerId, setFlowers),
+            ))
+        )
+            return;
         updateFlowers(
             {
                 id: device.deviceId,

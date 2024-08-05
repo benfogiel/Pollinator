@@ -5,8 +5,8 @@ import { isMobile } from "react-device-detect";
 import { HexColorPicker } from "react-colorful";
 
 import { useBLE } from "../../helpers/BLEProvider";
-import { Flower, Control } from "../../helpers/interfaces";
-import { createPollinationSequence, updateFlowers } from "../../helpers/util";
+import { Flower, CommandTypes, Command } from "../../helpers/interfaces";
+import { updateFlowers } from "../../helpers/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 
@@ -28,37 +28,41 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
 
-    const controlCards: Control[] = [
+    const controlCards: Command[] = [
         {
             id: "0",
+            type: CommandTypes.Static,
             name: "Custom",
             description: "Pollinate with your light",
             command: customColor,
         },
         {
             id: "1",
+            type: CommandTypes.Static,
             name: "White",
             description: "Pollinate with white light",
-            command: "white",
+            command: "#FFFFFF",
         },
         {
             id: "2",
+            type: CommandTypes.Static,
             name: "Red",
             description: "Pollinate with red light",
-            command: "red",
+            command: "#FF0000",
         },
         {
             id: "3",
+            type: CommandTypes.Static,
             name: "Rainbow Swirl",
             description: "Pollinate rainbow swirl magic",
-            command: "rainbow_swirl",
+            command: "rainbow",
         },
     ];
 
     const cardSelected = (cardId: number) => {
         const card = controlCards[cardId];
         setSelectedCard(cardId);
-        sendFlowerCommand(card.command);
+        pollinateFlowers({ [card.type]: card.command });
 
         // update flower cards
         for (const index in selectedFlowers) {
@@ -68,15 +72,12 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         }
     };
 
-    const sendFlowerCommand = (command: string) => {
+    const pollinateFlowers = (command: { [key: string]: string }) => {
         if (bleContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
                 if (flower.connected) {
-                    bleContext.write(
-                        flower.id,
-                        createPollinationSequence([command]),
-                    );
+                    bleContext.write(flower.id, JSON.stringify(command));
                 }
             }
         }
@@ -84,7 +85,7 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
-            sendFlowerCommand(customColor);
+            pollinateFlowers({ [CommandTypes.Static]: customColor });
         }, 100);
 
         return () => clearTimeout(debounceTimeout);

@@ -30,7 +30,3 @@ export const flowerDisconnected = (
         return updatedFlowers;
     });
 };
-
-export const createPollinationSequence = (sequence: string[]) => {
-    return `{pollination_sequence: ${JSON.stringify(sequence)}}`;
-};

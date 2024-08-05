@@ -1,3 +1,7 @@
+#include <iostream>
+#include <string>
+#include <functional>
+#include <stdexcept>
 #include <vector>
 #include <NimBLEDevice.h>
 #include <ArduinoJson.h>
@@ -12,7 +16,6 @@
 CRGB leds[NUM_LEDS];
 
 const std::string FLOWER_NAME = "Flower1";
-bool rainbowSwirlActive = false;
 
 const char* SERVICE_UUID = "3a90e639-5352-473a-bb0b-513d2d7ca5a6";
 const char* CHARACTERISTIC_UUID = "e7bbf8d3-185e-467f-ad48-8c0fddf65739";
@@ -59,14 +62,14 @@ class FlowerLED {
       FastLED.show();
     }
 
-    void rainbowSwirl() {
+    void rainbow() {
       for (int i = 0; i < _num_leds; i++) {
         leds[i] = CHSV(i * 256 / _num_leds, 255, 255); // CHSV(hue, saturation, value)
       }
       FastLED.show();
     }
 
-    void updateRainbowSwirl() {
+    void swirl() {
       CRGB temp = leds[_num_leds - 1];
       
       for (int i = _num_leds - 1; i > 0; i--) {
@@ -77,6 +80,25 @@ class FlowerLED {
       FastLED.show();
     }
 
+    std::map<String, std::function<void()>> states = {
+      {"idle", []() {}},
+      {"swirl", [this]() { swirl(); }},
+    };
+    String currentDynamicState = "idle";
+    int updateRate = 1000;
+
+    void setCurrentDynamicState(String state) {
+      if (states.find(state) == states.end()) {
+        throw std::invalid_argument(("State does not exist: " + state).c_str());
+      } else {
+        currentDynamicState = state;
+      }
+    }
+
+    void setUpdateRate(int rate) {
+      updateRate = rate;
+    }
+
   private:
     int _num_leds;
     int _pedal_length;
@@ -84,23 +106,24 @@ class FlowerLED {
 
 FlowerLED* flowerLED = new FlowerLED(NUM_LEDS, PEDAL_LENGTH);
 
-void pollinateAction(JsonArray array) {
-  rainbowSwirlActive = false;
-  
-  for (JsonVariant v : array) {
-      String cmd = v.as<String>();
+void pollinateAction(JsonObject action) {
 
-      if (cmd.startsWith("#") && cmd.length() == 7) {
-          Serial.println("Setting to color " + cmd);
-          flowerLED->setColorAll(cmd);
-      } else if (cmd == "rainbow_swirl") {
-          Serial.println("Starting rainbow swirl");
-          flowerLED->rainbowSwirl();
-          rainbowSwirlActive = true;
+  if (action.containsKey("static")) {
+    String state = action["static"];
+    if (state.startsWith("#") && state.length() == 7) {
+          flowerLED->setColorAll(state);
+      } else if (state == "rainbow") {
+          flowerLED->rainbow();
       } else {
-        Serial.print("unknown command: ");
-        Serial.println(cmd);
+        Serial.print("unknown static state: ");
+        Serial.println(state);
       }
+  }
+
+  if (action.containsKey("dynamic")) {
+    JsonObject dynamicState = action["dynamic"];
+    flowerLED->setCurrentDynamicState(dynamicState["name"]);
+    flowerLED->setUpdateRate(dynamicState["rate"]);
   }
 }
 
@@ -116,8 +139,8 @@ class CharacteristicsCallbacks : public NimBLECharacteristicCallbacks {
 
       DynamicJsonDocument doc(1024);
       deserializeJson(doc, value);
-      JsonArray cmdArray = doc.as<JsonArray>();
-      pollinateAction(cmdArray);
+      JsonObject action = doc.as<JsonObject>();
+      pollinateAction(action);
   }
 };
 
@@ -162,10 +185,6 @@ void setup() {
 }
 
 void loop() {
-  if (rainbowSwirlActive) {
-    flowerLED->updateRainbowSwirl();
-    delay(100); // Adjust the delay to control the speed of the swirl
-  } else {
-    delay(1000);
-  }
+  flowerLED->states[flowerLED->currentDynamicState]();
+  delay(flowerLED->updateRate);
 }

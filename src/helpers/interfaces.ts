@@ -6,8 +6,15 @@ export interface Flower {
     controlCardId?: number;
 }
 
-export interface Control {
+// enum
+export enum CommandTypes {
+    Static = "static",
+    Dynamic = "dynamic",
+}
+
+export interface Command {
     id: string;
+    type: CommandTypes;
     name: string;
     description: string;
     command: string;

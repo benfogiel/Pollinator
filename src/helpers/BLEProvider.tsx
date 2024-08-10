@@ -11,7 +11,6 @@ interface BLEContextType {
     connect: (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
-        pingFrequency?: number,
     ) => Promise<boolean>;
     write: (deviceId: string, message: string) => Promise<void>;
 }
@@ -43,19 +42,11 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
     const connect = async (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
-        pingFrequency: number = 10000,
     ): Promise<boolean> => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 
         try {
-            await BleClient.connect(deviceId, (deviceId) => {
-                clearInterval(pingInterval);
-                disconnectCallback(deviceId);
-            });
-
-            const pingInterval = setInterval(() => {
-                write(deviceId, "ping");
-            }, pingFrequency);
+            await BleClient.connect(deviceId, disconnectCallback);
 
             return true;
         } catch (error) {

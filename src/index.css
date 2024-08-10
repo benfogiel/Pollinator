@@ -56,3 +56,22 @@ body {
 .bad {
     background-color: red;
 }
+
+/* ---- Separator ---- */
+
+.separator-container {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+}
+  
+.line {
+    flex-grow: 1;
+    height: 1px;
+    background-color: var(--pol-ultra-red);
+}
+
+.separator-text {
+    color: var(--pol-text-1);
+    margin: 0 10px;
+}

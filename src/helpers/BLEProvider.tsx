@@ -48,14 +48,12 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 
         try {
-            let pingInterval;
-
             await BleClient.connect(deviceId, (deviceId) => {
                 clearInterval(pingInterval);
                 disconnectCallback(deviceId);
             });
 
-            pingInterval = setInterval(() => {
+            const pingInterval = setInterval(() => {
                 write(deviceId, "ping");
             }, pingFrequency);
 

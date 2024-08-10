@@ -5,12 +5,18 @@ import { isMobile } from "react-device-detect";
 import { HexColorPicker } from "react-colorful";
 
 import { useBLE } from "../../helpers/BLEProvider";
-import { Flower, CommandTypes, Command } from "../../helpers/interfaces";
+import {
+    Flower,
+    CommandTypes,
+    Command,
+    CommandCardId,
+} from "../../helpers/interfaces";
 import { updateFlowers } from "../../helpers/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
+import SectionSeparator from "../common/Separator";
 
-interface ControlCardProps {
+interface ControlGridProps {
     cards: Record<string, Flower>;
     setControlCards: (controlCards: Record<string, Flower>) => void;
     flowers: Record<string, Flower>;
@@ -21,53 +27,83 @@ interface ControlCardProps {
     ) => void;
 }
 
-const ControlGrid: FC<ControlCardProps> = (props) => {
+const ControlGrid: FC<ControlGridProps> = (props) => {
     const bleContext = useBLE();
 
-    const [selectedCard, setSelectedCard] = useState<number | null>(null);
+    const [selectedColorCard, setSelectedColorCard] = useState<string | null>(
+        null,
+    );
+    const [selectedMotionCard, setSelectedMotionCard] = useState<string | null>(
+        null,
+    );
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
+    const [colorPickerVisible, setColorPickerVisible] =
+        useState<boolean>(false);
 
-    const controlCards: Command[] = [
+    const colorCards: Command[] = [
         {
-            id: "0",
-            type: CommandTypes.Static,
+            type: CommandTypes.Color,
             name: "Custom",
             description: "Pollinate with your light",
             command: customColor,
         },
         {
-            id: "1",
-            type: CommandTypes.Static,
+            type: CommandTypes.Color,
             name: "White",
             description: "Pollinate with white light",
             command: "#FFFFFF",
         },
         {
-            id: "2",
-            type: CommandTypes.Static,
+            type: CommandTypes.Color,
             name: "Red",
             description: "Pollinate with red light",
             command: "#FF0000",
         },
         {
-            id: "3",
-            type: CommandTypes.Static,
-            name: "Rainbow Swirl",
-            description: "Pollinate rainbow swirl magic",
+            type: CommandTypes.Color,
+            name: "Rainbow",
+            description: "Pollinate a rainbow",
             command: "rainbow",
         },
     ];
 
-    const cardSelected = (cardId: number) => {
-        const card = controlCards[cardId];
-        setSelectedCard(cardId);
+    const motionCards: Command[] = [
+        {
+            type: CommandTypes.Motion,
+            name: "Swirl",
+            description: "Swirl around",
+            command: "swirl",
+        },
+    ];
+
+    const findCard = (name: string, type: CommandTypes) => {
+        const card = [...colorCards, ...motionCards].find(
+            (card) => card.name === name && card.type === type,
+        );
+        return card;
+    };
+
+    const cardSelected = (name: string, type: CommandTypes) => {
+        const card = findCard(name, type);
+        if (!card) return;
+        if (card.type === CommandTypes.Color) {
+            setSelectedColorCard(card.name);
+            card.name === "Custom"
+                ? setColorPickerVisible(true)
+                : setColorPickerVisible(false);
+        } else if (card.type === CommandTypes.Motion) {
+            setSelectedMotionCard(card.name);
+        }
         pollinateFlowers({ [card.type]: card.command });
 
         // update flower cards
         for (const index in selectedFlowers) {
             const flower = selectedFlowers[index];
-            flower.controlCardId = cardId;
+            flower.selectedControlCards.push({
+                type: card.type,
+                name: card.name,
+            });
             updateFlowers(flower, props.setFlowers);
         }
     };
@@ -85,64 +121,106 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
-            pollinateFlowers({ [CommandTypes.Static]: customColor });
+            pollinateFlowers({ [CommandTypes.Color]: customColor });
         }, 100);
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
 
     useEffect(() => {
-        const commonControlCards: Set<number | undefined> = new Set(
-            selectedFlowers.map((f) => f.controlCardId),
+        const commandControlCards: Array<CommandCardId[]> = selectedFlowers.map(
+            (f) => f.selectedControlCards,
         );
-        let cardId: number | null;
-        if (commonControlCards.size === 1) {
-            // the selected flowers do have the same control card selected
-            cardId = commonControlCards.values().next().value;
-        } else {
-            // the selected flowers don't have the same control card selected
-            cardId = null;
+
+        if (commandControlCards.length === 0) return;
+
+        const intersectingSet: CommandCardId[] = commandControlCards.reduce(
+            (acc, set) => acc.filter((item) => set.includes(item)),
+        );
+
+        for (const cardId of intersectingSet) {
+            if (cardId.type === CommandTypes.Color) {
+                setSelectedColorCard(cardId.name);
+            } else if (cardId.type === CommandTypes.Motion) {
+                setSelectedMotionCard(cardId.name);
+            }
         }
-        setSelectedCard(cardId);
     }, [selectedFlowers]);
 
+    const handlePickerClick = (event) => {
+        event.stopPropagation();
+        setColorPickerVisible(true);
+    };
+
+    const handleParentClick = () => {
+        if (colorPickerVisible) {
+            setColorPickerVisible(false);
+        }
+    };
+
     return (
-        <>
+        <div onClick={handleParentClick} style={{ position: "relative" }}>
             <FlowerSelector
                 flowers={Object.values(props.flowers)}
                 selectedFlowers={selectedFlowers}
                 setSelectedFlowers={setSelectedFlowers}
             />
+            <SectionSeparator text="Color" />
             <Grid
                 columns={isMobile ? "2" : "3"}
                 gap="5"
                 rows="repeat(0, 200px)"
                 width="auto"
             >
-                {controlCards.map((card, i) => {
+                {colorCards.map((card, i) => {
                     return (
                         <ControlCard
                             key={i}
                             id={i}
                             label={card.name}
                             description={card.description}
-                            selected={i === selectedCard}
-                            onClick={cardSelected}
+                            selected={card.name === selectedColorCard}
+                            onClick={() => cardSelected(card.name, card.type)}
                         />
                     );
                 })}
-                {selectedCard === 0 && (
-                    <HexColorPicker
-                        color={customColor}
-                        onChange={setCustomColor}
-                        style={{
-                            position: "absolute",
-                            marginTop: "135px",
-                        }}
-                    />
+                {colorPickerVisible && (
+                    <div
+                        onClick={handlePickerClick}
+                        style={{ position: "absolute" }}
+                    >
+                        <HexColorPicker
+                            color={customColor}
+                            onChange={setCustomColor}
+                            style={{
+                                position: "absolute",
+                                marginTop: "135px",
+                            }}
+                        />
+                    </div>
                 )}
             </Grid>
-        </>
+            <SectionSeparator text="Motion" />
+            <Grid
+                columns={isMobile ? "2" : "3"}
+                gap="5"
+                rows="repeat(0, 200px)"
+                width="auto"
+            >
+                {motionCards.map((card, i) => {
+                    return (
+                        <ControlCard
+                            key={i}
+                            id={i}
+                            label={card.name}
+                            description={card.description}
+                            selected={card.name === selectedMotionCard}
+                            onClick={() => cardSelected(card.name, card.type)}
+                        />
+                    );
+                })}
+            </Grid>
+        </div>
     );
 };
 

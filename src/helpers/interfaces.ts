@@ -3,19 +3,22 @@ export interface Flower {
     name: string;
     description: string;
     connected?: boolean;
-    controlCardId?: number;
+    selectedControlCards: Array<CommandCardId>;
 }
 
-// enum
 export enum CommandTypes {
-    Static = "static",
-    Dynamic = "dynamic",
+    Color = "color",
+    Motion = "motion",
+}
+
+export interface CommandCardId {
+    type: CommandTypes;
+    name: string;
 }
 
 export interface Command {
-    id: string;
+    command: string;
     type: CommandTypes;
     name: string;
     description: string;
-    command: string;
 }

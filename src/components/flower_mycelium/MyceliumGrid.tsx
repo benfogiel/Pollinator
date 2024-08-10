@@ -44,6 +44,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                 name: device.name,
                 description: "",
                 connected: true,
+                selectedControlCards: [],
             },
             setFlowers,
         );

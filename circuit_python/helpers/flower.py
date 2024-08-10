@@ -23,6 +23,7 @@ class Flower:
         self._flash_counter = 0
 
     def set_current_motion_states(self, states: list[str]):
+        self.leds.brightness = self._max_brightness
         for state in states:
             if state not in self.MOTION_STATES:
                 raise ValueError(f"State does not exist: {state}")
@@ -39,6 +40,7 @@ class Flower:
     def update(self):
         for state in self.current_motion_states:
             self.MOTION_STATES[state]()
+        self.leds.show()
     
     def get_pedal_leds(self, pedal_index):
         return range(
@@ -79,7 +81,6 @@ class Flower:
         for i in range(self.num_leds - 1, 0, -1):
             self.leds[i] = self.leds[i - 1]
         self.leds[0] = temp
-        self.leds.show()
 
     def breathe(self):
         if self._increasing_breadth:
@@ -90,12 +91,10 @@ class Flower:
             self.leds.brightness -= 0.05
             if self.leds.brightness <= 0.1:
                 self._increasing_breadth = True
-        self.leds.show()
 
     def flash(self):
         if self._flash_counter % 2 == 0:
             self.leds.fill((255, 255, 255))
         else:
             self.leds.fill((0, 0, 0))
-        self.leds.show()
         self._flash_counter += 1

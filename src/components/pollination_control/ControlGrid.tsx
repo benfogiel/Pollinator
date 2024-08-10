@@ -15,6 +15,7 @@ import { updateFlowers } from "../../helpers/util";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 import SectionSeparator from "../common/Separator";
+import Slider from "../common/Slider";
 
 interface ControlGridProps {
     cards: Record<string, Flower>;
@@ -40,6 +41,8 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
     const [colorPickerVisible, setColorPickerVisible] =
         useState<boolean>(false);
+    const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
+    const [selectedSpeed, setSelectedSpeed] = useState<number>(50);
 
     const colorCards: Command[] = [
         {
@@ -140,18 +143,37 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 setSelectedMotionCard(cardId.name);
             }
         }
+
+        // use current selected brightness and speed
+        pollinateFlowers({
+            brightness: selectedBrightness.toString(),
+            speed: selectedSpeed.toString(),
+        });
     }, [selectedFlowers]);
 
     const handlePickerClick = (event) => {
         event.stopPropagation();
         setColorPickerVisible(true);
     };
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            pollinateFlowers({ brightness: selectedBrightness.toString() });
+        }, 500);
 
     const handleParentClick = () => {
         if (colorPickerVisible) {
             setColorPickerVisible(false);
         }
     };
+        return () => clearTimeout(debounceTimeout);
+    }, [selectedBrightness]);
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            pollinateFlowers({ speed: selectedSpeed.toString() });
+        }, 500);
+
+        return () => clearTimeout(debounceTimeout);
+    }, [selectedSpeed]);
 
     return (
         <div onClick={handleParentClick} style={{ position: "relative" }}>
@@ -161,6 +183,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 setSelectedFlowers={setSelectedFlowers}
             />
             <SectionSeparator text="Color" />
+            <Slider
+                name="Brightness"
+                value={[selectedBrightness]}
+                onChange={(value: number[]) => setSelectedBrightness(value[0])}
+            />
             <Grid
                 columns={isMobile ? "2" : "3"}
                 gap="5"
@@ -195,6 +222,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 )}
             </Grid>
             <SectionSeparator text="Motion" />
+            <Slider
+                name="Speed"
+                value={[selectedSpeed]}
+                onChange={(value: number[]) => setSelectedSpeed(value[0])}
+            />
             <Grid
                 columns={isMobile ? "2" : "3"}
                 gap="5"

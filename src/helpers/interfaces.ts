@@ -3,17 +3,12 @@ export interface Flower {
     name: string;
     description: string;
     connected?: boolean;
-    selectedControlCards: Array<CommandCardId>;
+    selectedCommands: Array<Command>;
 }
 
 export enum CommandTypes {
     Color = "color",
     Motion = "motion",
-}
-
-export interface CommandCardId {
-    type: CommandTypes;
-    name: string;
 }
 
 export interface Command {

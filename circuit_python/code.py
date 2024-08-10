@@ -41,7 +41,7 @@ def pollinate(action):
         flower_led.set_update_rate(1.0 / float(action["speed"]))
 
     if "brightness" in action:
-        flower_led.set_brightness(float(action["brightness"]) / 100)
+        flower_led.set_max_brightness(float(action["brightness"]) / 100)
 
 def update_flower(t_last):
     t_now = time.monotonic()

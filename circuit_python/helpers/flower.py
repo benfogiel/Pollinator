@@ -12,14 +12,24 @@ class Flower:
         self.update_rate = 1.0  # in seconds
         self.leds = neopixel.NeoPixel(self.data_pin, num_leds, brightness=0.8, auto_write=False)
 
-        self.MOTION_STATES = {"idle": lambda: None, "swirl": self.swirl}
+        self.MOTION_STATES = {
+            "idle": lambda: None,
+            "swirl": self.swirl,
+            "breathe": self.breathe,
+            "flash": self.flash,
+        }
+
+        self._max_brightness = 1.0
+        self._increasing_breadth = True
+        self._flash_counter = 0
 
     def set_current_motion_state(self, state):
         if state not in self.MOTION_STATES:
             raise ValueError(f"State does not exist: {state}")
         self.current_motion_state = state
 
-    def set_brightness(self, brightness):
+    def set_max_brightness(self, brightness):
+        self._max_brightness = brightness
         self.leds.brightness = brightness
         self.leds.show()
     
@@ -70,3 +80,22 @@ class Flower:
             self.leds[i] = self.leds[i - 1]
         self.leds[0] = temp
         self.leds.show()
+
+    def breathe(self):
+        if self._increasing_breadth:
+            self.leds.brightness += 0.05
+            if self.leds.brightness >= self._max_brightness:
+                self._increasing_breadth = False
+        else:
+            self.leds.brightness -= 0.05
+            if self.leds.brightness <= 0.1:
+                self._increasing_breadth = True
+        self.leds.show()
+
+    def flash(self):
+        if self._flash_counter % 2 == 0:
+            self.leds.fill((255, 255, 255))
+        else:
+            self.leds.fill((0, 0, 0))
+        self.leds.show()
+        self._flash_counter += 1

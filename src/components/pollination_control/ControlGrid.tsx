@@ -78,6 +78,16 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             name: "Swirl",
             command: "swirl",
         },
+        {
+            type: CommandTypes.Motion,
+            name: "Breathe",
+            command: "breathe",
+        },
+        {
+            type: CommandTypes.Motion,
+            name: "Flash",
+            command: "flash",
+        },
     ];
 
     const findCard = (name: string, type: CommandTypes) => {

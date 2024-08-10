@@ -10,7 +10,7 @@ export interface FlowerCardProps {
     id: string;
     flowerParams?: Flower;
     selected?: boolean;
-    onClick: (id: string) => void;
+    onClick?: (id: string) => void;
 }
 
 const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
@@ -22,7 +22,9 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
             <Box
                 id={props.id}
                 selected={props.selected || false}
-                onClick={() => props.onClick(props.id)}
+                onClick={
+                    props.onClick ? () => props.onClick(props.id) : () => {}
+                }
             >
                 {props.flowerParams ? (
                     <Card

@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import "@radix-ui/themes/styles.css";
 import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
@@ -20,12 +20,6 @@ interface MyceliumGridProps {
 
 const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
     const BLEContext = useBLE();
-
-    const [selectedCard, setSelectedCard] = useState<string | null>(null);
-
-    const selectCard = (id: string) => {
-        setSelectedCard(id);
-    };
 
     const connectToBLE = async () => {
         if (!BLEContext) return;
@@ -72,8 +66,6 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                             key={id}
                             id={id}
                             flowerParams={flowers[id]}
-                            selected={id === selectedCard}
-                            onClick={selectCard}
                         />
                     );
                 })}

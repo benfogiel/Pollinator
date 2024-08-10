@@ -30,6 +30,8 @@ interface ControlGridProps {
 
 const ControlGrid: FC<ControlGridProps> = (props) => {
     const bleContext = useBLE();
+    const [colorPickerVisible, setColorPickerVisible] =
+        useState<boolean>(false);
 
     const [selectedColorCard, setSelectedColorCard] = useState<string | null>(
         null,
@@ -39,8 +41,6 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     );
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
-    const [colorPickerVisible, setColorPickerVisible] =
-        useState<boolean>(false);
     const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
     const [selectedSpeed, setSelectedSpeed] = useState<number>(50);
 
@@ -117,10 +117,21 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         }
     };
 
+    const handlePickerClick = (event) => {
+        event.stopPropagation();
+        setColorPickerVisible(true);
+    };
+
+    const handleParentClick = () => {
+        if (colorPickerVisible) {
+            setColorPickerVisible(false);
+        }
+    };
+
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
             pollinateFlowers({ [CommandTypes.Color]: customColor });
-        }, 100);
+        }, 250);
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
@@ -151,22 +162,14 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         });
     }, [selectedFlowers]);
 
-    const handlePickerClick = (event) => {
-        event.stopPropagation();
-        setColorPickerVisible(true);
-    };
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
             pollinateFlowers({ brightness: selectedBrightness.toString() });
         }, 500);
 
-    const handleParentClick = () => {
-        if (colorPickerVisible) {
-            setColorPickerVisible(false);
-        }
-    };
         return () => clearTimeout(debounceTimeout);
     }, [selectedBrightness]);
+
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
             pollinateFlowers({ speed: selectedSpeed.toString() });
@@ -177,6 +180,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
 
     return (
         <div onClick={handleParentClick} style={{ position: "relative" }}>
+            <SectionSeparator text="Connected" />
             <FlowerSelector
                 flowers={Object.values(props.flowers)}
                 selectedFlowers={selectedFlowers}

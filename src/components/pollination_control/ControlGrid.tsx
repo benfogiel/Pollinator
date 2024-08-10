@@ -45,25 +45,21 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         {
             type: CommandTypes.Color,
             name: "Custom",
-            description: "Pollinate with your light",
             command: customColor,
         },
         {
             type: CommandTypes.Color,
             name: "White",
-            description: "Pollinate with white light",
             command: "#FFFFFF",
         },
         {
             type: CommandTypes.Color,
             name: "Red",
-            description: "Pollinate with red light",
             command: "#FF0000",
         },
         {
             type: CommandTypes.Color,
             name: "Rainbow",
-            description: "Pollinate a rainbow",
             command: "rainbow",
         },
     ];
@@ -72,7 +68,6 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         {
             type: CommandTypes.Motion,
             name: "Swirl",
-            description: "Swirl around",
             command: "swirl",
         },
     ];
@@ -178,7 +173,6 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             key={i}
                             id={i}
                             label={card.name}
-                            description={card.description}
                             selected={card.name === selectedColorCard}
                             onClick={() => cardSelected(card.name, card.type)}
                         />

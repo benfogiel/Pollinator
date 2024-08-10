@@ -20,5 +20,4 @@ export interface Command {
     command: string;
     type: CommandTypes;
     name: string;
-    description: string;
 }

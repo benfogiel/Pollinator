@@ -32,7 +32,7 @@ def pollinate(action):
             print(f"unknown static state: {state}")
 
     if "motion" in action:
-        flower_led.set_current_motion_state(action["motion"])
+        flower_led.set_current_motion_states(action["motion"])
 
     if "rate" in action:
         flower_led.set_update_rate(action["rate"])
@@ -80,7 +80,7 @@ while True:
     try:
         ble.start_advertising(advertisement)
         print("BLE advertising started")
-    except:
+    except Exception as e:
         # already advertising
         pass
 

@@ -31,9 +31,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const [selectedColorCmd, setSelectedColorCmd] = useState<Command | null>(
         null,
     );
-    const [selectedMotionCmd, setSelectedMotionCmd] = useState<Command | null>(
-        null,
-    );
+    const [selectedMotionCmds, setSelectedMotionCmds] = useState<Command[]>([]);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
     const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
@@ -100,24 +98,25 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const cardSelected = (name: string, type: CommandTypes) => {
         const card = findCard(name, type);
         if (!card) return;
-        let command = card.command;
         if (card.type === CommandTypes.Color) {
             setSelectedColorCmd(card);
             card.name === "Custom"
                 ? setColorPickerVisible(true)
                 : setColorPickerVisible(false);
         } else if (card.type === CommandTypes.Motion) {
-            if (selectedMotionCmd?.name == card.name) {
-                setSelectedMotionCmd(null);
-                command = "idle";
+            if (selectedMotionCmds.map((cmd) => cmd.name).includes(card.name)) {
+                setSelectedMotionCmds(
+                    selectedMotionCmds.filter((cmd) => cmd.name !== card.name),
+                );
             } else {
-                setSelectedMotionCmd(card);
+                setSelectedMotionCmds([...selectedMotionCmds, card]);
             }
         }
-        pollinateFlowers({ [card.type]: command });
     };
 
-    const pollinateFlowers = (command: { [key: string]: string }) => {
+    const pollinateFlowers = (command: {
+        [key: string]: string | string[];
+    }) => {
         if (bleContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
@@ -146,11 +145,25 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             flower.selectedCommands = [];
             if (selectedColorCmd)
                 flower.selectedCommands.push(selectedColorCmd);
-            if (selectedMotionCmd)
-                flower.selectedCommands.push(selectedMotionCmd);
+            if (selectedMotionCmds)
+                flower.selectedCommands.push(...selectedMotionCmds);
             updateFlowers(flower, props.setFlowers);
         }
-    }, [selectedColorCmd, selectedMotionCmd]);
+    }, [selectedColorCmd, selectedMotionCmds]);
+
+    useEffect(() => {
+        if (selectedColorCmd) {
+            pollinateFlowers({
+                [selectedColorCmd.type]: selectedColorCmd.command,
+            });
+        }
+    }, [selectedColorCmd]);
+
+    useEffect(() => {
+        pollinateFlowers({
+            [CommandTypes.Motion]: selectedMotionCmds.map((cmd) => cmd.command),
+        });
+    }, [selectedMotionCmds]);
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
@@ -171,13 +184,15 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             (acc, set) => acc.filter((item) => set.includes(item)),
         );
 
+        const motionCmds: Command[] = [];
         for (const cmd of intersectingSet) {
             if (cmd.type === CommandTypes.Color) {
                 setSelectedColorCmd(cmd);
             } else if (cmd.type === CommandTypes.Motion) {
-                setSelectedMotionCmd(cmd);
+                motionCmds.push(cmd);
             }
         }
+        setSelectedMotionCmds(motionCmds);
 
         // use current selected brightness and speed
         pollinateFlowers({
@@ -267,7 +282,9 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             key={i}
                             id={i}
                             label={card.name}
-                            selected={card.name === selectedMotionCmd?.name}
+                            selected={selectedMotionCmds
+                                ?.map((cmd) => cmd.name)
+                                .includes(card.name)}
                             onClick={() => cardSelected(card.name, card.type)}
                         />
                     );

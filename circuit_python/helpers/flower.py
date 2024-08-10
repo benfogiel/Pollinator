@@ -8,12 +8,11 @@ class Flower:
         self.num_leds = num_leds
         self.pedal_length = pedal_length
         self.data_pin = data_pin
-        self.current_motion_state = "idle"
+        self.current_motion_states = []
         self.update_rate = 1.0  # in seconds
         self.leds = neopixel.NeoPixel(self.data_pin, num_leds, brightness=0.8, auto_write=False)
 
         self.MOTION_STATES = {
-            "idle": lambda: None,
             "swirl": self.swirl,
             "breathe": self.breathe,
             "flash": self.flash,
@@ -23,10 +22,11 @@ class Flower:
         self._increasing_breadth = True
         self._flash_counter = 0
 
-    def set_current_motion_state(self, state):
-        if state not in self.MOTION_STATES:
-            raise ValueError(f"State does not exist: {state}")
-        self.current_motion_state = state
+    def set_current_motion_states(self, states: list[str]):
+        for state in states:
+            if state not in self.MOTION_STATES:
+                raise ValueError(f"State does not exist: {state}")
+        self.current_motion_states = states
 
     def set_max_brightness(self, brightness):
         self._max_brightness = brightness
@@ -37,8 +37,8 @@ class Flower:
         self.update_rate = rate
 
     def update(self):
-        if self.current_motion_state in self.MOTION_STATES:
-            self.MOTION_STATES[self.current_motion_state]()
+        for state in self.current_motion_states:
+            self.MOTION_STATES[state]()
     
     def get_pedal_leds(self, pedal_index):
         return range(

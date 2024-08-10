@@ -67,8 +67,8 @@ body {
   
 .line {
     flex-grow: 1;
-    height: 1px;
-    background-color: var(--pol-ultra-red);
+    height: 3px;
+    background: linear-gradient(to right, transparent, var(--pol-bg-1), transparent);
 }
 
 .separator-text {

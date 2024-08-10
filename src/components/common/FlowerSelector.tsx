@@ -47,10 +47,11 @@ export const FlowerSelector: FC<FlowerSelectorProps> = (props) => {
                                             flower.id,
                                         )}
                                         style={{
-                                            padding: 10,
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
+                                            padding: selectedValues.includes(
+                                                flower.id,
+                                            )
+                                                ? "8px"
+                                                : "10px",
                                         }}
                                     >
                                         <Text

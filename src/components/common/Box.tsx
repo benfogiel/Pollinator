@@ -19,7 +19,7 @@ const Box: FC<BoxProps> = (props) => {
         backgroundColor: "var(--pol-bg-1)",
         borderRadius: "10px",
         margin: "10px",
-        padding: props.selected ? "3px" : "5px",
+        padding: props.selected ? "1px" : "5px",
         border: props.selected ? "2px solid var(--pol-ultra-red)" : "none",
         cursor: "pointer",
         ...props.style,

@@ -3,8 +3,8 @@ import { Box as RadixBox } from "@radix-ui/themes";
 
 export interface BoxProps {
     id: string | number;
-    maxWidth: string;
-    minHeight: string;
+    maxWidth?: string;
+    minHeight?: string;
     onClick: (id: string | number) => void;
     selected: boolean;
     children: React.ReactNode;
@@ -13,6 +13,9 @@ export interface BoxProps {
 
 const Box: FC<BoxProps> = (props) => {
     const boxStyle = {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         backgroundColor: "var(--pol-bg-1)",
         borderRadius: "10px",
         margin: "10px",
@@ -26,7 +29,7 @@ const Box: FC<BoxProps> = (props) => {
         <RadixBox
             maxWidth={props.maxWidth}
             minHeight={props.minHeight}
-            style={boxStyle}
+            style={boxStyle as React.CSSProperties}
             onClick={() => props.onClick(props.id)}
         >
             {props.children}

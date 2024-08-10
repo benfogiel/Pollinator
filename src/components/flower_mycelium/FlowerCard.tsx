@@ -22,19 +22,11 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
             <Box
                 id={props.id}
                 selected={props.selected || false}
-                maxWidth="360px"
-                minHeight="120px"
                 onClick={() => props.onClick(props.id)}
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
             >
                 {props.flowerParams ? (
                     <Card
                         title={props.flowerParams.name}
-                        description={props.flowerParams.description}
                         status={props.flowerParams.connected}
                     />
                 ) : (

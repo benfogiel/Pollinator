@@ -6,6 +6,8 @@ import {
     textToDataView,
 } from "@capacitor-community/bluetooth-le";
 
+import { splitIntoPackets } from "./util";
+
 interface BLEContextType {
     discoverDevice: () => Promise<BleDevice | undefined>;
     connect: (
@@ -32,6 +34,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         try {
             const device = await BleClient.requestDevice({
                 services: [process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID],
+                namePrefix: "Flower",
             });
             return device;
         } catch (error) {
@@ -63,12 +66,24 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
             return;
 
         try {
-            await BleClient.write(
-                deviceId,
-                process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID,
-                process.env.NEXT_PUBLIC_BLE_FLOWER_CHARACTERISTIC_UUID,
-                textToDataView(message),
+            const packets = splitIntoPackets(
+                message,
+                process.env.NEXT_PUBLIC_MAX_BLE_PACKET_BYTES
+                    ? parseInt(process.env.NEXT_PUBLIC_MAX_BLE_PACKET_BYTES)
+                    : 20,
+                process.env.NEXT_PUBLIC_BLE_MSG_TERMINATOR
+                    ? process.env.NEXT_PUBLIC_BLE_MSG_TERMINATOR
+                    : ";",
             );
+
+            for (const packet of packets) {
+                await BleClient.write(
+                    deviceId,
+                    process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID,
+                    process.env.NEXT_PUBLIC_BLE_FLOWER_CHARACTERISTIC_UUID,
+                    textToDataView(packet),
+                );
+            }
         } catch (error) {
             console.error(error);
         }

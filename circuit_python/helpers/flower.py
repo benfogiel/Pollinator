@@ -84,11 +84,11 @@ class Flower:
 
     def breathe(self):
         if self._increasing_breadth:
-            self.leds.brightness += 0.05
+            self.leds.brightness += 0.01
             if self.leds.brightness >= self._max_brightness:
                 self._increasing_breadth = False
         else:
-            self.leds.brightness -= 0.05
+            self.leds.brightness -= 0.01
             if self.leds.brightness <= 0.1:
                 self._increasing_breadth = True
 

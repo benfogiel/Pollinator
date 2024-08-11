@@ -22,9 +22,7 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
             <Box
                 id={props.id}
                 selected={props.selected || false}
-                onClick={
-                    props.onClick ? () => props.onClick(props.id) : () => {}
-                }
+                onClick={() => props.onClick?.(props.id)}
             >
                 {props.flowerParams ? (
                     <Card

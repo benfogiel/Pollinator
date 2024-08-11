@@ -1,5 +1,6 @@
 import time
 import board
+import adafruit_logging as logging
 from adafruit_ble import BLERadio
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_ble.services.nordic import UARTService
@@ -16,6 +17,11 @@ NUM_LEDS = int(env.get("NUM_LEDS"))
 PEDAL_LENGTH = int(env.get("PEDAL_LENGTH"))
 REFRESH_RATE = float(env.get("REFRESH_RATE"))
 MSG_TERMINATOR = env.get("MSG_TERMINATOR")
+LOG_LEVEL = env.get("LOG_LEVEL")
+
+# Set up logging
+logger = logging.getLogger("code")
+logger.setLevel(getattr(logging, LOG_LEVEL))
 
 def pollinate(action):
     if "color" in action:
@@ -29,7 +35,7 @@ def pollinate(action):
         elif state == "rainbow":
             flower_led.rainbow()
         else:
-            print(f"unknown static state: {state}")
+            logging.error(f"unknown static state: {state}")
 
     if "motion" in action:
         flower_led.set_current_motion_states(action["motion"])
@@ -62,7 +68,7 @@ def read_msg_stream(timeout=1) -> str:
         elif message == "":
             return ""
         
-    print("Timeout reached. Unable to read message stream.")
+    logger.error("Timeout reached. Unable to read message stream.")
     return ""
 
 
@@ -73,28 +79,28 @@ ble = BLERadio()
 ble.name = NAME
 uart = UARTService()
 advertisement = ProvideServicesAdvertisement(uart)
-print("Uart: ", uart.uuid)
 
 t_last = time.monotonic()
 while True:
-    try:
-        ble.start_advertising(advertisement)
-        print("BLE advertising started")
-    except Exception as e:
-        # already advertising
+    ble.start_advertising(advertisement)
+    logger.info("BLE advertising started")
+    while not ble.connected:
         pass
 
     while ble.connected:
         message = read_msg_stream()
         if message:
-            print("Received:", message)
+            logger.debug("Received: %s", message)
             try:
                 action = json.loads(message)
                 pollinate(action)
             except ValueError as e:
-                print(f"Failed to parse JSON: {e}")
+                logger.error(f"Failed to parse JSON: %s", e)
         t_last = update_flower(t_last)
         time.sleep(REFRESH_RATE)
+
+    # If we got here, we lost the connection. Go up to the top and start
+    # advertising again and waiting for a connection.
 
     # still update the flower
     t_last = update_flower(t_last)

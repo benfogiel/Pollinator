@@ -151,6 +151,8 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const handleParentClick = () => {
         if (colorPickerVisible) {
             setColorPickerVisible(false);
+        }
+        if (customGradPicker) {
             setCustomGradPicker(false);
         }
     };

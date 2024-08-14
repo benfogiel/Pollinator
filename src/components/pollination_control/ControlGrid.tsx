@@ -76,6 +76,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             name: "Red-Yellow",
             command: "gradient,#FF0000,#FFFF00",
         },
+        {
+            type: CommandTypes.Color,
+            name: "Yellow-Pink",
+            command: "gradient,#FFFF00,#FF00FF",
+        },
     ];
 
     const motionCards: Command[] = [

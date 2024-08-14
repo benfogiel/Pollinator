@@ -8,7 +8,7 @@ import json
 
 from helpers import Flower, load_env_file
 
-env = load_env_file('.env')
+env = load_env_file("env.txt")
 
 # Constants
 NAME = env.get("NAME")

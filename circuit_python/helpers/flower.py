@@ -94,7 +94,7 @@ class Flower:
 
     def flash(self):
         if self._flash_counter % 2 == 0:
-            self.leds.fill((255, 255, 255))
+            self.leds.brightness = self._max_brightness
         else:
-            self.leds.fill((0, 0, 0))
+            self.leds.brightness = 0
         self._flash_counter += 1

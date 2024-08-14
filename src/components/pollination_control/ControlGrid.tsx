@@ -303,6 +303,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             style={{
                                 position: "absolute",
                                 marginTop: "75px",
+                                marginLeft: "20px",
                             }}
                         />
                         <HexColorPicker
@@ -311,7 +312,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             style={{
                                 position: "absolute",
                                 marginTop: "75px",
-                                marginLeft: "200px",
+                                marginLeft: "230px",
                             }}
                         />
                     </div>

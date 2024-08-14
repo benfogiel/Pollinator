@@ -27,6 +27,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const bleContext = useBLE();
     const [colorPickerVisible, setColorPickerVisible] =
         useState<boolean>(false);
+    const [customGradPicker, setCustomGradPicker] = useState<boolean>(false);
 
     const [selectedColorCmd, setSelectedColorCmd] = useState<Command | null>(
         null,
@@ -34,6 +35,8 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const [selectedMotionCmds, setSelectedMotionCmds] = useState<Command[]>([]);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
+    const [customGrad1, setCustomGrad1] = useState<string>("#FF0000");
+    const [customGrad2, setCustomGrad2] = useState<string>("#FFFF00");
     const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
     const [selectedSpeed, setSelectedSpeed] = useState<number>(50);
 
@@ -108,6 +111,9 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             card.name === "Custom"
                 ? setColorPickerVisible(true)
                 : setColorPickerVisible(false);
+            card.name === "Gradient"
+                ? setCustomGradPicker(true)
+                : setCustomGradPicker(false);
         } else if (card.type === CommandTypes.Motion) {
             if (selectedMotionCmds.map((cmd) => cmd.name).includes(card.name)) {
                 setSelectedMotionCmds(
@@ -137,9 +143,15 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         setColorPickerVisible(true);
     };
 
+    const handleGradPickerClick = (event) => {
+        event.stopPropagation();
+        setCustomGradPicker(true);
+    };
+
     const handleParentClick = () => {
         if (colorPickerVisible) {
             setColorPickerVisible(false);
+            setCustomGradPicker(false);
         }
     };
 

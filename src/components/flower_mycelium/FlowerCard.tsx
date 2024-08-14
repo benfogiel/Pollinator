@@ -2,14 +2,15 @@ import React, { FC } from "react";
 import { Text } from "@radix-ui/themes";
 
 import Box from "../common/Box";
-import { Flower } from "../../lib/interfaces";
+import { Flower } from "../../helpers/interfaces";
 import { Card } from "../common/Card";
 
 export interface FlowerCardProps {
+    key: string;
     id: string;
     flowerParams?: Flower;
     selected?: boolean;
-    onClick: (id: string) => void;
+    onClick?: (id: string) => void;
 }
 
 const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
@@ -21,19 +22,11 @@ const FlowerCard: FC<FlowerCardProps> = React.forwardRef<
             <Box
                 id={props.id}
                 selected={props.selected || false}
-                maxWidth="360px"
-                minHeight="120px"
-                onClick={() => props.onClick(props.id)}
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
+                onClick={() => props.onClick?.(props.id)}
             >
                 {props.flowerParams ? (
                     <Card
                         title={props.flowerParams.name}
-                        description={props.flowerParams.description}
                         status={props.flowerParams.connected}
                     />
                 ) : (

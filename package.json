@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@capacitor-community/bluetooth-le": "^6.0.1",
         "@capacitor/cli": "^6.1.1",
         "@capacitor/core": "^6.1.1",
         "@capacitor/ios": "^6.1.1",
@@ -42,8 +43,8 @@
         "dev": "next dev -H 0.0.0.0",
         "build": "next build",
         "start": "next start",
-        "lint": "eslint src/ test/",
-        "lint:fix": "eslint --fix src/ test/",
+        "lint": "eslint src/",
+        "lint:fix": "eslint --fix src/",
         "mock-server": "node test/mocks/server.js"
     },
     "eslintConfig": {

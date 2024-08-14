@@ -1,7 +1,7 @@
 import React, { useState, FC, useEffect } from "react";
 import { Box as RadixBox, CheckboxCards, Flex, Text } from "@radix-ui/themes";
 
-import { Flower } from "../../lib/interfaces";
+import { Flower } from "../../helpers/interfaces";
 import Box from "./Box";
 
 interface FlowerSelectorProps {
@@ -47,10 +47,11 @@ export const FlowerSelector: FC<FlowerSelectorProps> = (props) => {
                                             flower.id,
                                         )}
                                         style={{
-                                            padding: 10,
-                                            display: "flex",
-                                            justifyContent: "center",
-                                            alignItems: "center",
+                                            padding: selectedValues.includes(
+                                                flower.id,
+                                            )
+                                                ? "8px"
+                                                : "10px",
                                         }}
                                     >
                                         <Text

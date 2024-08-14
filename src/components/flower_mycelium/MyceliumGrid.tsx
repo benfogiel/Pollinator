@@ -1,17 +1,13 @@
-import React, { FC, useState } from "react";
+import React, { FC } from "react";
 import "@radix-ui/themes/styles.css";
 import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
-import { v4 as uuid } from "uuid";
 
-import { useWebSocket } from "../../lib/provider/WebSocketProvider";
-import { Flower } from "../../lib/interfaces";
-import { updateFlowers } from "../../lib/util";
+import { useBLE } from "../../helpers/BLEProvider";
+import { Flower } from "../../helpers/interfaces";
+import { updateFlowers, flowerDisconnected } from "../../helpers/util";
 import FlowerCard from "./FlowerCard";
-import NurseryModal from "./NurseryModal";
 import Button from "../common/Button";
-import { getFlowerAncestry } from "src/lib/service/flower_ancestry";
-import { connectFlower } from "../../lib/service/flower";
 
 interface MyceliumGridProps {
     flowers: Record<string, Flower>;
@@ -23,46 +19,28 @@ interface MyceliumGridProps {
 }
 
 const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
-    const websocketContext = useWebSocket();
+    const BLEContext = useBLE();
 
-    const [selectedCard, setSelectedCard] = useState<string | null>(null);
-
-    const selectCard = (id: string) => {
-        setSelectedCard(id);
-    };
-
-    const reviveAncestors = async (): Promise<void> => {
-        if (!websocketContext) return;
-        const ancestors: Array<Flower> = getFlowerAncestry();
-        await Promise.all(
-            ancestors.map(async (flower: Flower) => {
-                const matchingIdx: number = Object.values(flowers).findIndex(
-                    (f) =>
-                        `${f.ip}:${f.port}` === `${flower.ip}:${flower.port}`,
-                );
-                if (
-                    matchingIdx != -1 &&
-                    Object.values(flowers)[matchingIdx].connected
-                ) {
-                    console.debug(
-                        `Skipping auto-connect for ${flower.ip}:${flower.port} because it is already connected.`,
-                    );
-                    return;
-                }
-                console.debug(
-                    `Attempting to auto-connect to ${flower.ip}:${flower.port}`,
-                );
-                await connectFlower(
-                    websocketContext,
-                    flower,
-                    (f) => updateFlowers(f, setFlowers),
-                    () => {},
-                    () =>
-                        console.debug(
-                            `Failed to auto-connect to ${flower.ip}:${flower.port}`,
-                        ),
-                );
-            }),
+    const connectToBLE = async () => {
+        if (!BLEContext) return;
+        const device = await BLEContext.discoverDevice();
+        if (
+            !device ||
+            !device.name ||
+            !(await BLEContext.connect(device?.deviceId, (flowerId) =>
+                flowerDisconnected(flowerId, setFlowers),
+            ))
+        )
+            return;
+        updateFlowers(
+            {
+                id: device.deviceId,
+                name: device.name,
+                description: "",
+                connected: true,
+                selectedCommands: [],
+            },
+            setFlowers,
         );
     };
 
@@ -74,7 +52,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                     justifyContent: "center",
                 }}
             >
-                <Button text="Auto-Connect" onClick={reviveAncestors} />
+                <Button text="Auto-Connect" onClick={connectToBLE} />
             </div>
             <Grid
                 columns={isMobile ? "2" : "3"}
@@ -84,32 +62,13 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
             >
                 {Object.keys(flowers).map((id) => {
                     return (
-                        <NurseryModal
+                        <FlowerCard
                             key={id}
-                            flowerCard={
-                                <FlowerCard
-                                    id={id}
-                                    flowerParams={flowers[id]}
-                                    selected={id === selectedCard}
-                                    onClick={selectCard}
-                                />
-                            }
-                            updateFlowers={(flower) =>
-                                updateFlowers(flower, setFlowers)
-                            }
+                            id={id}
+                            flowerParams={flowers[id]}
                         />
                     );
                 })}
-                {
-                    <NurseryModal
-                        flowerCard={
-                            <FlowerCard id={uuid()} onClick={selectCard} />
-                        }
-                        updateFlowers={(flower) =>
-                            updateFlowers(flower, setFlowers)
-                        }
-                    />
-                }
             </Grid>
         </>
     );

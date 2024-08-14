@@ -14,6 +14,13 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
+"@capacitor-community/bluetooth-le@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@capacitor-community/bluetooth-le/-/bluetooth-le-6.0.1.tgz#d30d621476d11a13d0b77b57e815ba867480884c"
+  integrity sha512-ouMSW6ymhB4KAhl2uAcxWNGhMj5onqopQdixGyW8PWOc+KxpCnqkQNZ6MzRuGZUJUfdiJ28p6p64FAoTH2cy+Q==
+  dependencies:
+    "@types/web-bluetooth" "^0.0.20"
+
 "@capacitor/cli@^6.1.1":
   version "6.1.1"
   resolved "https://registry.yarnpkg.com/@capacitor/cli/-/cli-6.1.1.tgz#ff8423fef26572ba73177c62c8677e77968fc4c6"
@@ -1150,6 +1157,11 @@
   version "9.0.8"
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.8.tgz#7545ba4fc3c003d6c756f651f3bf163d8f0f29ba"
   integrity sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==
+
+"@types/web-bluetooth@^0.0.20":
+  version "0.0.20"
+  resolved "https://registry.yarnpkg.com/@types/web-bluetooth/-/web-bluetooth-0.0.20.tgz#f066abfcd1cbe66267cdbbf0de010d8a41b41597"
+  integrity sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==
 
 "@types/ws@^8.5.10":
   version "8.5.10"

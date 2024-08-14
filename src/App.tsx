@@ -1,14 +1,14 @@
 import React from "react";
-import WebSocketProvider from "./lib/provider/WebSocketProvider";
+import BLEProvider from "./helpers/BLEProvider";
 import Dashboard from "./components/Dashboard";
 
 const App: React.FC = () => {
     return (
-        <WebSocketProvider>
+        <BLEProvider>
             <div className="flex justify-center">
                 <Dashboard />
             </div>
-        </WebSocketProvider>
+        </BLEProvider>
     );
 };
 

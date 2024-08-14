@@ -3,11 +3,10 @@ import { Card as RadixCard, Text } from "@radix-ui/themes";
 
 interface CardProps {
     title: string;
-    description: string;
     status?: boolean;
 }
 
-export const Card: FC<CardProps> = ({ title, description, status }) => {
+export const Card: FC<CardProps> = ({ title, status }) => {
     return (
         <RadixCard asChild style={{ margin: "10px" }}>
             <a href="#control-card">
@@ -29,12 +28,6 @@ export const Card: FC<CardProps> = ({ title, description, status }) => {
                         <></>
                     )}
                 </div>
-                <Text
-                    as="div"
-                    style={{ color: "var(--pol-text-1)", fontSize: "12px" }}
-                >
-                    {description}
-                </Text>
             </a>
         </RadixCard>
     );

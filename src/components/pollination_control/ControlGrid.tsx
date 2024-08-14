@@ -21,12 +21,16 @@ interface ControlCardProps {
     ) => void;
 }
 
-const ControlGrid: FC<ControlCardProps> = (props) => {
-    const websocketContext = useWebSocket();
+const ControlGrid: FC<ControlGridProps> = (props) => {
+    const bleContext = useBLE();
+    const [colorPickerVisible, setColorPickerVisible] =
+        useState<boolean>(false);
 
     const [selectedCard, setSelectedCard] = useState<number | null>(null);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
+    const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
+    const [selectedSpeed, setSelectedSpeed] = useState<number>(50);
 
     const controlCards: Control[] = [
         {
@@ -34,6 +38,11 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
             name: "Custom",
             description: "Pollinate with your light",
             command: customColor,
+        },
+        {
+            type: CommandTypes.Color,
+            name: "Gradient",
+            command: `gradient,${customGrad1},${customGrad2}`,
         },
         {
             id: "1",
@@ -55,18 +64,25 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         },
     ];
 
-    const selectCard = (cardId: number) => {
-        const card = controlCards[cardId];
-        setSelectedCard(cardId);
-        setFlowerColor(card.command);
+    const findCard = (name: string, type: CommandTypes) => {
+        const card = [...colorCards, ...motionCards].find(
+            (card) => card.name === name && card.type === type,
+        );
+        return card;
+    };
 
-        // send the command to the flower and update flowers
-        if (websocketContext) {
-            for (const index in selectedFlowers) {
-                const flower = selectedFlowers[index];
-                websocketContext.sendMessage(
-                    flower.id,
-                    createPollinationSequence([card.command]),
+    const cardSelected = (name: string, type: CommandTypes) => {
+        const card = findCard(name, type);
+        if (!card) return;
+        if (card.type === CommandTypes.Color) {
+            setSelectedColorCmd(card);
+            card.name === "Custom"
+                ? setColorPickerVisible(true)
+                : setColorPickerVisible(false);
+        } else if (card.type === CommandTypes.Motion) {
+            if (selectedMotionCmds.map((cmd) => cmd.name).includes(card.name)) {
+                setSelectedMotionCmds(
+                    selectedMotionCmds.filter((cmd) => cmd.name !== card.name),
                 );
                 flower.controlCardId = cardId;
                 updateFlowers(flower, props.setFlowers);
@@ -78,13 +94,50 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
         if (websocketContext) {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
-                websocketContext.sendMessage(
-                    flower.id,
-                    createPollinationSequence([color]),
-                );
+                if (flower.connected) {
+                    bleContext.write(flower.id, JSON.stringify(command));
+                }
             }
         }
     };
+
+    const handlePickerClick = (event) => {
+        event.stopPropagation();
+        setColorPickerVisible(true);
+    };
+
+    const handleParentClick = () => {
+        if (colorPickerVisible) {
+            setColorPickerVisible(false);
+        }
+    };
+
+    useEffect(() => {
+        // update flower cards
+        for (const index in selectedFlowers) {
+            const flower = selectedFlowers[index];
+            flower.selectedCommands = [];
+            if (selectedColorCmd)
+                flower.selectedCommands.push(selectedColorCmd);
+            if (selectedMotionCmds)
+                flower.selectedCommands.push(...selectedMotionCmds);
+            updateFlowers(flower, props.setFlowers);
+        }
+    }, [selectedColorCmd, selectedMotionCmds]);
+
+    useEffect(() => {
+        if (selectedColorCmd) {
+            pollinateFlowers({
+                [selectedColorCmd.type]: selectedColorCmd.command,
+            });
+        }
+    }, [selectedColorCmd]);
+
+    useEffect(() => {
+        pollinateFlowers({
+            [CommandTypes.Motion]: selectedMotionCmds.map((cmd) => cmd.command),
+        });
+    }, [selectedMotionCmds]);
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
@@ -93,6 +146,16 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
+
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            pollinateFlowers({
+                [CommandTypes.Color]: `gradient,${customGrad1},${customGrad2}`,
+            });
+        }, 250);
+
+        return () => clearTimeout(debounceTimeout);
+    }, [customGrad1, customGrad2]);
 
     useEffect(() => {
         const commonControlCards: Set<number | undefined> = new Set(
@@ -134,15 +197,44 @@ const ControlGrid: FC<ControlCardProps> = (props) => {
                         />
                     );
                 })}
-                {selectedCard === 0 && (
-                    <HexColorPicker
-                        color={customColor}
-                        onChange={setCustomColor}
-                        style={{
-                            position: "absolute",
-                            marginTop: "135px",
-                        }}
-                    />
+                {colorPickerVisible && (
+                    <div
+                        onClick={handlePickerClick}
+                        style={{ position: "absolute" }}
+                    >
+                        <HexColorPicker
+                            color={customColor}
+                            onChange={setCustomColor}
+                            style={{
+                                position: "absolute",
+                                marginTop: "75px",
+                            }}
+                        />
+                    </div>
+                )}
+                {customGradPicker && (
+                    <div
+                        onClick={handleGradPickerClick}
+                        style={{ position: "absolute" }}
+                    >
+                        <HexColorPicker
+                            color={customGrad1}
+                            onChange={setCustomGrad1}
+                            style={{
+                                position: "absolute",
+                                marginTop: "75px",
+                            }}
+                        />
+                        <HexColorPicker
+                            color={customGrad2}
+                            onChange={setCustomGrad2}
+                            style={{
+                                position: "absolute",
+                                marginTop: "75px",
+                                marginLeft: "200px",
+                            }}
+                        />
+                    </div>
                 )}
             </Grid>
         </>

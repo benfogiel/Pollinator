@@ -300,24 +300,27 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 {customGradPicker && (
                     <div
                         onClick={handleGradPickerClick}
-                        style={{ position: "absolute" }}
+                        style={{
+                            position: "absolute",
+                            width: "100%",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            marginTop: "75px",
+                        }}
                     >
                         <HexColorPicker
                             color={customGrad1}
                             onChange={setCustomGrad1}
                             style={{
-                                position: "absolute",
-                                marginTop: "75px",
-                                marginLeft: "20px",
+                                position: "relative",
                             }}
                         />
                         <HexColorPicker
                             color={customGrad2}
                             onChange={setCustomGrad2}
                             style={{
-                                position: "absolute",
-                                marginTop: "75px",
-                                marginLeft: "230px",
+                                position: "relative",
+                                zIndex: 99,
                             }}
                         />
                     </div>

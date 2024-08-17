@@ -1,18 +1,23 @@
+import adafruit_logging as logging
+
+
 def load_env_file(filepath) -> dict:
     env_vars = {}
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         for line in f:
-            line = line.strip().replace(' ', '')
-            if line and not line.startswith('#'):
-                key, value = line.split('=', 1)
+            line = line.strip().replace(" ", "")
+            if line and not line.startswith("#"):
+                key, value = line.split("=", 1)
                 env_vars[key] = value
     return env_vars
+
 
 def parse_hex_color(hex_color):
     hex_color = hex_color.strip()
     if hex_color.startswith("#"):
         hex_color = hex_color[1:]
     return tuple(int(hex_color[i : i + 2], 16) for i in (0, 2, 4))
+
 
 def hsv_to_rgb(h, s, v):
     if s == 0.0:
@@ -35,3 +40,11 @@ def hsv_to_rgb(h, s, v):
         return int(t * 255), int(p * 255), int(v * 255)
     if i == 5:
         return int(v * 255), int(p * 255), int(q * 255)
+
+
+def get_logger():
+    env = load_env_file("env.txt")
+
+    logger = logging.getLogger("code")
+    logger.setLevel(getattr(logging, env.get("LOG_LEVEL")))
+    return logger

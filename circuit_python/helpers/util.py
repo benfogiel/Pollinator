@@ -1,5 +1,6 @@
+import json
 import adafruit_logging as logging
-
+import microcontroller
 
 def load_env_file(filepath) -> dict:
     env_vars = {}
@@ -48,3 +49,31 @@ def get_logger():
     logger = logging.getLogger("code")
     logger.setLevel(getattr(logging, env.get("LOG_LEVEL")))
     return logger
+
+
+def update_board_cache(data: dict):
+    json_str = json.dumps(data)
+    encoded_data = json_str.encode("utf-8")
+
+    if len(encoded_data) > len(microcontroller.nvm):
+        raise ValueError("Data is too large to fit in NVM")
+
+    microcontroller.nvm[0 : len(encoded_data)] = encoded_data
+
+
+def read_board_cache() -> dict:
+    stored_data = microcontroller.nvm[:]
+    null_byte_index = stored_data.find(b"\x00")
+    if null_byte_index != -1:
+        stored_data = stored_data[:null_byte_index]
+
+    json_str = stored_data.decode("utf-8")
+
+    try:
+        cache = json.loads(json_str)
+    except ValueError:
+        # nvm storage is corrupted clear it
+        microcontroller.nvm[0:] = b"\x00" * len(microcontroller.nvm)
+        return {}
+
+    return cache

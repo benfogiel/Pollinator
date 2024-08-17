@@ -1,30 +1,15 @@
-import json
-import microcontroller
 import neopixel
 import board
 
-from .util import parse_hex_color, hsv_to_rgb, get_logger
+from .util import (
+    parse_hex_color,
+    hsv_to_rgb,
+    get_logger,
+    read_board_cache,
+    update_board_cache,
+)
 
 logger = get_logger()
-
-def update_board_cache(data: dict):
-    json_str = json.dumps(data)
-    encoded_data = json_str.encode('utf-8')
-    
-    if len(encoded_data) > len(microcontroller.nvm):
-        raise ValueError("Data is too large to fit in NVM")
-    
-    microcontroller.nvm[0:len(encoded_data)] = encoded_data
-
-def read_board_cache() -> dict:
-    stored_data = microcontroller.nvm[:]
-    null_byte_index = stored_data.find(b'\x00')
-    if null_byte_index != -1:
-        stored_data = stored_data[:null_byte_index]
-    
-    json_str = stored_data.decode('utf-8')
-    
-    return json.loads(json_str) if json_str else {}
 
 
 class Flower:
@@ -58,11 +43,11 @@ class Flower:
 
     def update_cache(self, state):
         current_cache = read_board_cache()
-            
+
         # Merge the dictionaries
         new_cache = current_cache.copy()
         new_cache.update(state)
-        
+
         update_board_cache(new_cache)
 
     def update(self):
@@ -71,11 +56,11 @@ class Flower:
         self.leds.show()
 
     def pollinate(self, action):
-        if "color" in action:
-            state = action["color"]
+        if "co" in action:
+            state = action["co"]
             components = state.split(",")
             if len(components) > 1:
-                if components[0] == "gradient":
+                if components[0] == "grad":
                     self.set_gradient(components[1], components[2])
             elif state.startswith("#") and len(state) == 7:
                 self.set_color_all(state)
@@ -84,20 +69,20 @@ class Flower:
             else:
                 logger.error(f"unknown static state: {state}")
 
-        if "motion" in action:
-            self.set_current_motion_states(action["motion"])
+        if "mo" in action:
+            self.set_current_motion_states(action["mo"])
 
-        if "rate" in action:
-            self.set_update_rate(action["rate"])
+        if "ur" in action:
+            self.set_update_rate(action["ur"])
 
-        if "speed" in action:
-            if float(action["speed"]) == 0:
+        if "sp" in action:
+            if float(action["sp"]) == 0:
                 self.set_update_rate(0)
             else:
-                self.set_update_rate(1.0 / float(action["speed"]))
+                self.set_update_rate(1.0 / float(action["sp"]))
 
-        if "brightness" in action:
-            self.set_max_brightness(float(action["brightness"]) / 100)
+        if "br" in action:
+            self.set_max_brightness(float(action["br"]) / 100)
 
         self.update_cache(action)
 

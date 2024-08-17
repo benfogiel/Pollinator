@@ -226,18 +226,16 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 motionCmds.push(cmd);
             }
         }
-        setSelectedMotionCmds(motionCmds);
-
-        // use current selected brightness and speed
-        pollinateFlowers({
-            brightness: selectedBrightness.toString(),
-            speed: selectedSpeed.toString(),
-        });
+        if (motionCmds.length > 0) {
+            setSelectedMotionCmds(motionCmds);
+        }
     }, [selectedFlowers]);
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
-            pollinateFlowers({ brightness: selectedBrightness.toString() });
+            pollinateFlowers({
+                [CommandTypes.Brightness]: selectedBrightness.toString(),
+            });
         }, 500);
 
         return () => clearTimeout(debounceTimeout);
@@ -245,7 +243,9 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
-            pollinateFlowers({ speed: selectedSpeed.toString() });
+            pollinateFlowers({
+                [CommandTypes.Speed]: selectedSpeed.toString(),
+            });
         }, 500);
 
         return () => clearTimeout(debounceTimeout);

@@ -1,6 +1,9 @@
+import { BleDevice } from "@capacitor-community/bluetooth-le";
+
 export interface Flower {
     id: string;
     name: string;
+    device: BleDevice;
     description: string;
     connected?: boolean;
     selectedCommands: Array<Command>;

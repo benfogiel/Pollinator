@@ -19,9 +19,11 @@ interface BLEContextType {
     connect: (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
+        reconnectedCallback: (deviceId: string) => void,
         reconnectCount?: number,
     ) => Promise<boolean>;
     write: (deviceId: string, message: string) => Promise<void>;
+    devices: BleDevice[];
 }
 
 interface BLEProviderProps {
@@ -33,12 +35,22 @@ const BLEContext = createContext<BLEContextType | null>(null);
 export const useBLE = (): BLEContextType | null => useContext(BLEContext);
 
 const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
-    BleClient.initialize();
-
+    const [devices, setDevices] = useState<BleDevice[]>([]);
     const [messageQueue, setMessageQueue] = useState<Array<[string, string[]]>>(
         [],
     );
     const [isSending, setIsSending] = useState<boolean>(false);
+
+    useEffect(() => {
+        const initBle = async () => {
+            try {
+                await BleClient.initialize();
+            } catch (error) {
+                console.error("Failed to initialize BLE", error);
+            }
+        };
+        initBle();
+    }, []);
 
     const discoverDevice = async (): Promise<BleDevice | undefined> => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return;
@@ -46,8 +58,8 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         try {
             const device = await BleClient.requestDevice({
                 services: [process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID],
-                namePrefix: "Flower",
             });
+            setDevices((prevDevices) => [...prevDevices, device]);
             return device;
         } catch (error) {
             console.error(error);
@@ -57,22 +69,25 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
     const connect = async (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
-        reconnectCount = 0,
+        reconnectedCallback: (deviceId: string) => void,
+        reconnectCount: number = 0,
     ): Promise<boolean> => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 
         try {
             await BleClient.connect(deviceId, async () => {
+                disconnectCallback(deviceId);
                 if (reconnectCount < 3) {
                     console.log(`Reconnecting ${deviceId}...`);
                     await connect(
                         deviceId,
                         disconnectCallback,
+                        reconnectedCallback,
                         reconnectCount + 1,
                     );
+                    reconnectedCallback(deviceId);
                 } else {
                     console.log("Failed to reconnect");
-                    disconnectCallback(deviceId);
                 }
             });
             return true;
@@ -139,7 +154,9 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
     }, [messageQueue]);
 
     return (
-        <BLEContext.Provider value={{ discoverDevice, connect, write }}>
+        <BLEContext.Provider
+            value={{ discoverDevice, connect, write, devices }}
+        >
             {children}
         </BLEContext.Provider>
     );

@@ -5,7 +5,7 @@ import { isMobile } from "react-device-detect";
 
 import { useBLE } from "../../helpers/BLEProvider";
 import { Flower } from "../../helpers/interfaces";
-import { updateFlowers, flowerDisconnected } from "../../helpers/util";
+import { updateFlowers, updateFlowerConnection } from "../../helpers/util";
 import FlowerCard from "./FlowerCard";
 import Button from "../common/Button";
 
@@ -23,21 +23,23 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
 
     const connectToBLE = async () => {
         if (!BLEContext) return;
+
         const device = await BLEContext.discoverDevice();
-        if (
-            !device ||
-            !device.name ||
-            !(await BLEContext.connect(device?.deviceId, (flowerId) =>
-                flowerDisconnected(flowerId, setFlowers),
-            ))
-        )
-            return;
+        if (!device || !device.name) return;
+
+        const flowerConnected = await BLEContext.connect(
+            device.deviceId,
+            (flowerId) => updateFlowerConnection(flowerId, setFlowers, false),
+            (flowerId) => updateFlowerConnection(flowerId, setFlowers, true),
+        );
+
         updateFlowers(
             {
                 id: device.deviceId,
                 name: device.name,
+                device: device,
                 description: "",
-                connected: true,
+                connected: flowerConnected,
                 selectedCommands: [],
             },
             setFlowers,

@@ -14,18 +14,19 @@ export const updateFlowers = (
     }));
 };
 
-export const flowerDisconnected = (
+export const updateFlowerConnection = (
     flowerId: string,
     setFlowers: (
         flowersUpdater: (
             prevFlowers: Record<string, Flower>,
         ) => Record<string, Flower>,
     ) => void,
+    connected: boolean,
 ) => {
     setFlowers((prevFlowers) => {
         const updatedFlowers = { ...prevFlowers };
         if (updatedFlowers[flowerId] !== undefined) {
-            updatedFlowers[flowerId].connected = false;
+            updatedFlowers[flowerId].connected = connected;
         }
         return updatedFlowers;
     });

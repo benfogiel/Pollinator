@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import "@radix-ui/themes/styles.css";
 import { Grid } from "@radix-ui/themes";
 import { isMobile } from "react-device-detect";
+import { BleDevice } from "@capacitor-community/bluetooth-le";
 
 import { useBLE } from "../../helpers/BLEProvider";
 import { Flower } from "../../helpers/interfaces";
@@ -21,11 +22,16 @@ interface MyceliumGridProps {
 const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
     const BLEContext = useBLE();
 
-    const connectToBLE = async () => {
+    const discoverConnect = async () => {
         if (!BLEContext) return;
-
         const device = await BLEContext.discoverDevice();
-        if (!device || !device.name) return;
+        if (device) {
+            connectFlower(device);
+        }
+    };
+
+    const connectFlower = async (device: BleDevice) => {
+        if (!BLEContext) return;
 
         const flowerConnected = await BLEContext.connect(
             device.deviceId,
@@ -36,7 +42,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
         updateFlowers(
             {
                 id: device.deviceId,
-                name: device.name,
+                name: device.name || "Unknown",
                 device: device,
                 description: "",
                 connected: flowerConnected,
@@ -44,6 +50,21 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
             },
             setFlowers,
         );
+    };
+
+    const autoConnectFlowers = async () => {
+        if (!BLEContext) return;
+
+        // get stored flower IDs
+        const storedFlowerIds = localStorage.getItem("flowerIds");
+        if (!storedFlowerIds) return;
+
+        const flowerIds = storedFlowerIds.split(",");
+        const devices = await BLEContext.getDevices(flowerIds);
+        const connectionPromises = devices.map((device) =>
+            connectFlower(device),
+        );
+        await Promise.all(connectionPromises);
     };
 
     return (
@@ -54,7 +75,8 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                     justifyContent: "center",
                 }}
             >
-                <Button text="Auto-Connect" onClick={connectToBLE} />
+                <Button text="Connect New" onClick={discoverConnect} />
+                <Button text="Reconnect" onClick={autoConnectFlowers} />
             </div>
             <Grid
                 columns={isMobile ? "2" : "3"}

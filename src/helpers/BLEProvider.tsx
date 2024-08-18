@@ -16,6 +16,7 @@ import { splitIntoPackets } from "./util";
 
 interface BLEContextType {
     discoverDevice: () => Promise<BleDevice | undefined>;
+    getDevices: (deviceIds: string[]) => Promise<BleDevice[]>;
     connect: (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
@@ -23,7 +24,7 @@ interface BLEContextType {
         reconnectCount?: number,
     ) => Promise<boolean>;
     write: (deviceId: string, message: string) => Promise<void>;
-    devices: BleDevice[];
+    devices: Record<string, BleDevice>;
 }
 
 interface BLEProviderProps {
@@ -35,7 +36,7 @@ const BLEContext = createContext<BLEContextType | null>(null);
 export const useBLE = (): BLEContextType | null => useContext(BLEContext);
 
 const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
-    const [devices, setDevices] = useState<BleDevice[]>([]);
+    const [devices, setDevices] = useState<Record<string, BleDevice>>({});
     const [messageQueue, setMessageQueue] = useState<Array<[string, string[]]>>(
         [],
     );
@@ -59,11 +60,31 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
             const device = await BleClient.requestDevice({
                 services: [process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID],
             });
-            setDevices((prevDevices) => [...prevDevices, device]);
+            setDevices((prevDevices) => ({
+                ...prevDevices,
+                [device.deviceId]: device,
+            }));
             return device;
         } catch (error) {
             console.error(error);
         }
+    };
+
+    const getDevices = async (deviceIds: string[]): Promise<BleDevice[]> => {
+        try {
+            const devices = await BleClient.getDevices(deviceIds);
+            setDevices((prevDevices) => ({
+                ...prevDevices,
+                ...devices.reduce((acc, device) => {
+                    acc[device.deviceId] = device;
+                    return acc;
+                }, {}),
+            }));
+            return devices;
+        } catch (error) {
+            console.error("Failed to get devices", error);
+        }
+        return [];
     };
 
     const connect = async (
@@ -155,7 +176,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
 
     return (
         <BLEContext.Provider
-            value={{ discoverDevice, connect, write, devices }}
+            value={{ discoverDevice, getDevices, connect, write, devices }}
         >
             {children}
         </BLEContext.Provider>

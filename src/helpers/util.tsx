@@ -12,6 +12,19 @@ export const updateFlowers = (
         ...prevFlowers,
         [flower.id]: flower,
     }));
+
+    // save flower IDs to local storage
+    const prevStoredFlowerIds = localStorage.getItem("flowerIds");
+    if (prevStoredFlowerIds) {
+        const storedFlowerIds = new Set(prevStoredFlowerIds.split(","));
+        storedFlowerIds.add(flower.id);
+        localStorage.setItem(
+            "flowerIds",
+            Array.from(storedFlowerIds).join(","),
+        );
+    } else {
+        localStorage.setItem("flowerIds", flower.id);
+    }
 };
 
 export const updateFlowerConnection = (

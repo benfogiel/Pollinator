@@ -73,6 +73,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         },
         {
             type: CommandTypes.Color,
+            name: "Rainbow 2",
+            command: "rainbow2",
+        },
+        {
+            type: CommandTypes.Color,
             name: "Red-Yellow",
             command: "grad,#FF0000,#FFFF00",
         },

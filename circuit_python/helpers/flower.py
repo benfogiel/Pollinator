@@ -23,6 +23,11 @@ class Flower:
             self.data_pin, num_leds, brightness=0.8, auto_write=False
         )
 
+        self.CUSTOM_COLOR_STATES = {
+            "rainbow": self.rainbow,
+            "rainbow2": self.rainbow2,
+        }
+
         self.MOTION_STATES = {
             "swirl": self.swirl,
             "breathe": self.breathe,
@@ -51,7 +56,7 @@ class Flower:
         new_cache.update(state)
 
         update_board_cache(new_cache)
-        
+
         logger.debug(f"Updated cache: {new_cache}")
 
     def update(self):
@@ -68,8 +73,8 @@ class Flower:
                     self.set_gradient(components[1], components[2])
             elif state.startswith("#") and len(state) == 7:
                 self.set_color_all(state)
-            elif state == "rainbow":
-                self.rainbow()
+            elif state in self.CUSTOM_COLOR_STATES:
+                self.CUSTOM_COLOR_STATES[state]()
             else:
                 logger.error(f"unknown static state: {state}")
 
@@ -135,6 +140,17 @@ class Flower:
     def rainbow(self):
         for i in range(self.num_leds):
             hue = i / self.num_leds
+            rgb = hsv_to_rgb(hue, 1.0, 1.0)
+            self.leds[i] = rgb
+        self.leds.show()
+
+    def rainbow2(self):
+        for i in range(self.num_leds):
+            hue = (
+                i / self.num_leds / 2
+                if i < self.num_leds / 2
+                else 1 - (i / self.num_leds / 2)
+            )
             rgb = hsv_to_rgb(hue, 1.0, 1.0)
             self.leds[i] = rgb
         self.leds.show()

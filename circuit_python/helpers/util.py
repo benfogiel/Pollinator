@@ -2,11 +2,12 @@ import json
 import adafruit_logging as logging
 import microcontroller
 
+
 def load_env_file(filepath) -> dict:
     env_vars = {}
     with open(filepath, "r") as f:
         for line in f:
-            line = line.strip().replace(" ", "")
+            line = line.strip()
             if line and not line.startswith("#"):
                 key, value = line.split("=", 1)
                 env_vars[key] = value

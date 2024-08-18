@@ -80,5 +80,6 @@ def read_board_cache() -> dict:
 
     return cache
 
+
 def clear_board_cache() -> dict:
     microcontroller.nvm[0:] = b"\x00" * len(microcontroller.nvm)

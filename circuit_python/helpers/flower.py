@@ -41,6 +41,8 @@ class Flower:
         if cached_state:
             self.pollinate(cached_state)
 
+        logger.debug(f"Loaded cached state: {cached_state}")
+
     def update_cache(self, state):
         current_cache = read_board_cache()
 
@@ -49,6 +51,8 @@ class Flower:
         new_cache.update(state)
 
         update_board_cache(new_cache)
+        
+        logger.debug(f"Updated cache: {new_cache}")
 
     def update(self):
         for state in self.current_motion_states:

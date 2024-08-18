@@ -49,7 +49,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         {
             type: CommandTypes.Color,
             name: "Gradient",
-            command: `gradient,${customGrad1},${customGrad2}`,
+            command: `grad,${customGrad1},${customGrad2}`,
         },
         {
             type: CommandTypes.Color,
@@ -74,12 +74,12 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         {
             type: CommandTypes.Color,
             name: "Red-Yellow",
-            command: "gradient,#FF0000,#FFFF00",
+            command: "grad,#FF0000,#FFFF00",
         },
         {
             type: CommandTypes.Color,
             name: "Yellow-Pink",
-            command: "gradient,#FFFF00,#FF00FF",
+            command: "grad,#FFFF00,#FF00FF",
         },
     ];
 
@@ -200,7 +200,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
             pollinateFlowers({
-                [CommandTypes.Color]: `gradient,${customGrad1},${customGrad2}`,
+                [CommandTypes.Color]: `grad,${customGrad1},${customGrad2}`,
             });
         }, 250);
 

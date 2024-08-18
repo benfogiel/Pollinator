@@ -253,7 +253,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
 
     return (
         <div onClick={handleParentClick} style={{ position: "relative" }}>
-            {Object.values(props.flowers).map((f) => f.connected).length && (
+            {Object.values(props.flowers).filter((f) => f.connected).length && (
                 <SectionSeparator text="Connected" />
             )}
             <FlowerSelector

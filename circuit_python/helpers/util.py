@@ -59,6 +59,7 @@ def update_board_cache(data: dict):
     if len(encoded_data) > len(microcontroller.nvm):
         raise ValueError("Data is too large to fit in NVM")
 
+    clear_board_cache()
     microcontroller.nvm[0 : len(encoded_data)] = encoded_data
 
 
@@ -74,7 +75,10 @@ def read_board_cache() -> dict:
         cache = json.loads(json_str)
     except ValueError:
         # nvm storage is corrupted clear it
-        microcontroller.nvm[0:] = b"\x00" * len(microcontroller.nvm)
+        clear_board_cache()
         return {}
 
     return cache
+
+def clear_board_cache() -> dict:
+    microcontroller.nvm[0:] = b"\x00" * len(microcontroller.nvm)

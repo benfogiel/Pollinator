@@ -96,6 +96,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 
         try {
+            await BleClient.disconnect(deviceId);
             await BleClient.connect(deviceId, async () => {
                 disconnectCallback(deviceId);
                 if (reconnectCount < 3) {

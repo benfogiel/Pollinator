@@ -160,6 +160,7 @@ class Flower:
         for i in range(self.num_leds - 1, 0, -1):
             self.leds[i] = self.leds[i - 1]
         self.leds[0] = temp
+        
 
     def breathe(self):
         if self._increasing_breadth:

@@ -130,7 +130,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
                 : ";",
         );
 
-        setMessageQueue([...messageQueue, [deviceId, packets]]);
+        setMessageQueue((prevQueue) => [...prevQueue, [deviceId, packets]]);
     };
 
     useEffect(() => {

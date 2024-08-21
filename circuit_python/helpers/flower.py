@@ -32,6 +32,7 @@ class Flower:
             "swirl": self.swirl,
             "breathe": self.breathe,
             "flash": self.flash,
+            "radiate": self.radiate,
         }
 
         self._max_brightness = 1.0
@@ -160,6 +161,22 @@ class Flower:
         for i in range(self.num_leds - 1):
             self.leds[i] = self.leds[i + 1]
         self.leds[-1] = temp
+
+    def radiate(self):
+        # iterate the LED positions, one iteration loop on the first half of the LEDs
+        # and the other iteration loop on the second half of the LEDs
+
+        # first half of the LEDs
+        temp = self.leds[0]
+        for i in range(self.num_leds // 2 - 1):
+            self.leds[i] = self.leds[i + 1]
+        self.leds[self.num_leds // 2 - 1] = temp
+
+        # second half of the LEDs
+        temp2 = self.leds[self.num_leds // 2]
+        for i in range(self.num_leds // 2, self.num_leds - 1):
+            self.leds[i] = self.leds[i + 1]
+        self.leds[self.num_leds - 1] = temp2
 
     def breathe(self):
         if self._increasing_breadth:

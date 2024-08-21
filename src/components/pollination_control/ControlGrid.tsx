@@ -104,6 +104,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             name: "Flash",
             command: "flash",
         },
+        {
+            type: CommandTypes.Motion,
+            name: "Radiate",
+            command: "radiate",
+        },
     ];
 
     const findCard = (name: string, type: CommandTypes) => {

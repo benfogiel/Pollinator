@@ -139,7 +139,7 @@ class Flower:
 
     def rainbow(self):
         for i in range(self.num_leds):
-            hue = i / self.num_leds
+            hue = (i+1) / self.num_leds
             rgb = hsv_to_rgb(hue, 1.0, 1.0)
             self.leds[i] = rgb
         self.leds.show()
@@ -147,20 +147,19 @@ class Flower:
     def rainbow2(self):
         for i in range(self.num_leds):
             hue = (
-                i / self.num_leds / 2
+                (i+1) / (self.num_leds / 2)
                 if i < self.num_leds / 2
-                else 1 - (i / self.num_leds / 2)
+                else 1 - (i - self.num_leds / 2) / (self.num_leds / 2)
             )
             rgb = hsv_to_rgb(hue, 1.0, 1.0)
             self.leds[i] = rgb
         self.leds.show()
 
     def swirl(self):
-        temp = self.leds[-1]
-        for i in range(self.num_leds - 1, 0, -1):
-            self.leds[i] = self.leds[i - 1]
-        self.leds[0] = temp
-        
+        temp = self.leds[0]
+        for i in range(self.num_leds - 1):
+            self.leds[i] = self.leds[i + 1]
+        self.leds[-1] = temp
 
     def breathe(self):
         if self._increasing_breadth:

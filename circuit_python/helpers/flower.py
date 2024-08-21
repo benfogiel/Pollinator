@@ -130,7 +130,7 @@ class Flower:
         color1 = parse_hex_color(hex_color1)
         color2 = parse_hex_color(hex_color2)
         for i in range(self.num_leds):
-            ratio = i / self.num_leds
+            ratio = i / (self.num_leds / 2) if i < self.num_leds / 2 else 1 - (i - self.num_leds / 2) / (self.num_leds / 2)
             color = tuple(
                 int(color1[j] + ratio * (color2[j] - color1[j])) for j in range(3)
             )

@@ -174,7 +174,7 @@ class Flower:
 
         # second half of the LEDs
         temp2 = self.leds[self.num_leds - 1]
-        for i in range(self.num_leds, self.num_leds // 2 - 1, -1):
+        for i in range(self.num_leds - 1, self.num_leds // 2 - 1, -1):
             self.leds[i] = self.leds[i - 1]
         self.leds[self.num_leds // 2] = temp2
 

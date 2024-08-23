@@ -52,7 +52,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
         );
     };
 
-    const autoConnectFlowers = async () => {
+    const reconnectFlowers = async () => {
         if (!BLEContext) return;
 
         // get stored flower IDs
@@ -76,7 +76,7 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
                 }}
             >
                 <Button text="Connect New" onClick={discoverConnect} />
-                <Button text="Reconnect" onClick={autoConnectFlowers} />
+                <Button text="Reconnect" onClick={reconnectFlowers} />
             </div>
             <Grid
                 columns={isMobile ? "2" : "3"}

@@ -21,7 +21,7 @@ interface BLEContextType {
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
         reconnectedCallback: (deviceId: string) => void,
-        reconnectCount?: number,
+        timeout?: number,
     ) => Promise<boolean>;
     write: (deviceId: string, message: string) => Promise<void>;
     devices: Record<string, BleDevice>;
@@ -91,27 +91,27 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
         reconnectedCallback: (deviceId: string) => void,
-        reconnectCount: number = 0,
+        timeout: number = 1000,
     ): Promise<boolean> => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 
         try {
             await BleClient.disconnect(deviceId);
-            await BleClient.connect(deviceId, async () => {
-                disconnectCallback(deviceId);
-                if (reconnectCount < 3) {
+            await BleClient.connect(
+                deviceId,
+                async () => {
+                    disconnectCallback(deviceId);
                     console.log(`Reconnecting ${deviceId}...`);
-                    await connect(
+                    const connected = await connect(
                         deviceId,
                         disconnectCallback,
                         reconnectedCallback,
-                        reconnectCount + 1,
+                        5000,
                     );
-                    reconnectedCallback(deviceId);
-                } else {
-                    console.log("Failed to reconnect");
-                }
-            });
+                    connected && reconnectedCallback(deviceId);
+                },
+                { timeout: timeout },
+            );
             return true;
         } catch (error) {
             console.error("Failed to connect to device", error);

@@ -16,6 +16,7 @@ NUM_LEDS = int(env.get("NUM_LEDS"))
 PEDAL_LENGTH = int(env.get("PEDAL_LENGTH"))
 REFRESH_RATE = float(env.get("REFRESH_RATE"))
 MSG_TERMINATOR = env.get("MSG_TERMINATOR")
+INACTIVE_LIFETIME = 120 # 2 minutes
 
 logger = get_logger()
 
@@ -53,6 +54,7 @@ uart = UARTService()
 advertisement = ProvideServicesAdvertisement(uart)
 
 t_last = time.monotonic()
+t_last_msg = time.monotonic()
 while True:
     ble.start_advertising(advertisement)
     logger.info("BLE advertising started")
@@ -65,11 +67,15 @@ while True:
         message = read_msg_stream()
         if message:
             logger.debug("Received: %s", message)
+            t_last_msg = time.monotonic()
             try:
                 action = json.loads(message)
                 flower.pollinate(action)
             except ValueError as e:
                 logger.error(f"Failed to parse JSON: %s", e)
+        else:
+            if time.monotonic() - t_last_msg > INACTIVE_LIFETIME:
+                break # disconnect
         t_last = update(t_last)
         time.sleep(REFRESH_RATE)
 

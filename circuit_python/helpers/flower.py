@@ -29,10 +29,10 @@ class Flower:
         }
 
         self.MOTION_STATES = {
-            "swirl": self.swirl,
-            "breathe": self.breathe,
-            "flash": self.flash,
-            "radiate": self.radiate,
+            "swirl": (self.swirl,),
+            "breathe": (self.breathe,),
+            "flash": (self.flash,),
+            "radiate": (self.radiate, self.mirror),
         }
 
         self._max_brightness = 1.0
@@ -62,7 +62,7 @@ class Flower:
 
     def update(self):
         for state in self.current_motion_states:
-            self.MOTION_STATES[state]()
+            self.MOTION_STATES[state][0]()
         self.leds.show()
 
     def pollinate(self, action):
@@ -78,7 +78,7 @@ class Flower:
                 self.CUSTOM_COLOR_STATES[state]()
             else:
                 logger.error(f"unknown static state: {state}")
-
+            self.invoke_mutators()
         if "mo" in action:
             self.set_current_motion_states(action["mo"])
 
@@ -105,6 +105,31 @@ class Flower:
             if state not in self.MOTION_STATES:
                 raise ValueError(f"State does not exist: {state}")
         self.current_motion_states = states
+        self.invoke_mutators()
+
+    # --- mutators --- #
+
+    def invoke_mutators(self):
+        for state in self.current_motion_states:
+            if len(self.MOTION_STATES[state]) == 2:
+                # invoke mutator function
+                self.MOTION_STATES[state][1]()
+
+    def mirror(self):
+        # mirror the leds down the middle
+        new_leds = []
+        for i in range(0, self.num_leds, 2):
+            new_leds.append(self.leds[i])
+
+        # copy the first half to the second
+        half = len(new_leds)
+        for i in range(half):
+            new_leds.append(new_leds[half - i - 1])
+
+        self.leds = new_leds
+        self.leds.show()
+
+    # ---
 
     def set_max_brightness(self, brightness):
         self._max_brightness = brightness

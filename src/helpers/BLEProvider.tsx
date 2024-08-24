@@ -91,7 +91,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
         reconnectedCallback: (deviceId: string) => void,
-        timeout: number = 1000,
+        timeout: number = 2500,
     ): Promise<boolean> => {
         if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
 

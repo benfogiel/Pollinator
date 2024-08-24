@@ -75,9 +75,11 @@ while True:
                 logger.error(f"Failed to parse JSON: %s", e)
         else:
             if time.monotonic() - t_last_msg > INACTIVE_LIFETIME:
+                logger.info("Inactive lifetime reached, restarting advertisement.")
                 break # disconnect
         t_last = update(t_last)
         time.sleep(REFRESH_RATE)
 
     # If we got here, we lost the connection. Go up to the top and start
     # advertising again and waiting for a connection.
+    ble.stop_advertising()

@@ -96,6 +96,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         },
         {
             type: CommandTypes.Motion,
+            name: "Ext Swirl",
+            command: "extended_swirl",
+        },
+        {
+            type: CommandTypes.Motion,
             name: "Breathe",
             command: "breathe",
         },

@@ -19,9 +19,7 @@ class Flower:
         self.data_pin = data_pin
         self.current_motion_states = []
         self.update_rate = 1.0  # in seconds
-        self.leds = neopixel.NeoPixel(
-            self.data_pin, num_leds, brightness=0.8, auto_write=False
-        )
+        self.leds = self.init_leds()
 
         self.CUSTOM_COLOR_STATES = {
             "rainbow": self.rainbow,
@@ -30,6 +28,7 @@ class Flower:
 
         self.MOTION_STATES = {
             "swirl": (self.swirl,),
+            "extended_swirl": (self.swirl, self.extend),
             "breathe": (self.breathe,),
             "flash": (self.flash,),
             "radiate": (self.radiate, self.mirror),
@@ -41,6 +40,23 @@ class Flower:
 
         self._cache_file = "cache.json"
         self.load_cached_state()
+
+    def init_leds(self, leds = None):
+        len_leds = len(leds) if leds else self.num_leds
+
+        if hasattr(self, 'leds') and self.leds is not None:
+            self.leds.deinit()
+
+        self.leds = neopixel.NeoPixel(
+            self.data_pin, len_leds, brightness=0.8, auto_write=False
+        )
+
+        if leds:
+            # set colors from leds to self.leds
+            for i in range(len(leds)):
+                self.leds[i] = leds[i]
+
+        return self.leds
 
     def load_cached_state(self):
         cached_state = read_board_cache()
@@ -107,13 +123,31 @@ class Flower:
         self.current_motion_states = states
         self.invoke_mutators()
 
+    # --- LED property methods --- #
+
+    def set_max_brightness(self, brightness):
+        self._max_brightness = brightness
+        self.leds.brightness = brightness
+        self.leds.show()
+
+    def get_pedal_leds(self, pedal_index):
+        return range(
+            pedal_index * self.pedal_length,
+            min((pedal_index + 1) * self.pedal_length, self.num_leds),
+        )
+
     # --- mutators --- #
 
     def invoke_mutators(self):
+        self.mutator_reset()
         for state in self.current_motion_states:
             if len(self.MOTION_STATES[state]) == 2:
                 # invoke mutator function
                 self.MOTION_STATES[state][1]()
+
+    def mutator_reset(self):
+        # reset led length to num_leds
+        self.init_leds(self.leds[:self.num_leds])
 
     def mirror(self):
         # mirror the leds down the middle
@@ -126,21 +160,19 @@ class Flower:
         for i in range(half):
             new_leds.append(new_leds[half - i - 1])
 
-        self.leds = new_leds
+        self.init_leds(new_leds)
         self.leds.show()
 
-    # ---
+    def extend(self):
+        # extend leds by a multiple of pedal length
+        new_leds = []
+        for i in range(self.num_leds * self.pedal_length):
+            new_leds.append(self.leds[i // self.pedal_length])
 
-    def set_max_brightness(self, brightness):
-        self._max_brightness = brightness
-        self.leds.brightness = brightness
+        self.init_leds(new_leds)
         self.leds.show()
 
-    def get_pedal_leds(self, pedal_index):
-        return range(
-            pedal_index * self.pedal_length,
-            min((pedal_index + 1) * self.pedal_length, self.num_leds),
-        )
+    # --- color methods --- #
 
     def set_pedal_leds(self, pedal_index, color):
         for i in self.get_pedal_leds(pedal_index):
@@ -181,27 +213,29 @@ class Flower:
             self.leds[i] = rgb
         self.leds.show()
 
+    # -- motion methods --- #
+
     def swirl(self):
         temp = self.leds[0]
-        for i in range(self.num_leds - 1):
+        for i in range(len(self.leds) - 1):
             self.leds[i] = self.leds[i + 1]
         self.leds[-1] = temp
 
     def radiate(self):
         # iterate the LED positions, one iteration loop on the first half of the LEDs
         # and the other iteration loop on the second half of the LEDs
-
+        len_leds = len(self.leds)
         # first half of the LEDs
         temp = self.leds[0]
-        for i in range(self.num_leds // 2 - 1):
+        for i in range(len_leds // 2 - 1):
             self.leds[i] = self.leds[i + 1]
-        self.leds[self.num_leds // 2 - 1] = temp
+        self.leds[len_leds // 2 - 1] = temp
 
         # second half of the LEDs
-        temp2 = self.leds[self.num_leds - 1]
-        for i in range(self.num_leds - 1, self.num_leds // 2 - 1, -1):
+        temp2 = self.leds[len_leds - 1]
+        for i in range(len_leds - 1, len_leds // 2 - 1, -1):
             self.leds[i] = self.leds[i - 1]
-        self.leds[self.num_leds // 2] = temp2
+        self.leds[len_leds // 2] = temp2
 
     def breathe(self):
         if self._increasing_breadth:

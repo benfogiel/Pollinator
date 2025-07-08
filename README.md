@@ -2,7 +2,75 @@
 
 Built to control the most amazing LED flowers you'll ever cast your eyes on.
 
-## Development Documentation
+## Developer Documentation
+
+### App to Microcontroller Communication
+
+The app communicates with the microcontroller via Bluetooth Low Energy (BLE).
+
+Commands are JSON strings consisting of the key-value pair: command type (the key) and a command (the value). Each command type is independent and can be used in combination with other command types.
+
+#### Color:
+Applies a color pattern to the LED strips.
+
+CommandType: `co`
+
+Commands:
+  - hex color: `#FF0000`
+  - gradient: `grad, #FF0000, #0000FF`
+  - rainbow: `rainbow`
+  - rainbow2: `rainbow2`
+
+Example:
+
+```json
+{"co": "grad, #FF0000, #0000FF"}
+```
+
+#### Motion:
+Applies to the motion of the LED strips.
+
+CommandType: `mo`
+
+Commands:
+  - `swirl`
+  - `extended_swirl`
+  - `breathe`
+  - `flash`
+  - `radiate`
+
+Example:
+
+```json
+{"mo": "swirl"}
+```
+
+#### Brightness:
+Dictates the brightness of the LED strips.
+
+CommandType: `br`
+
+Command: float between `0-100`
+
+Example:
+
+```json
+{"br": "50"}
+```
+
+#### Speed:
+Dictates the speed of the motion.
+
+CommandType: `sp`
+
+Command: float between `0-100`
+
+Example:
+
+```json
+{"sp": "50"}
+```
+
 
 ### Using Capacitor
 

@@ -12,7 +12,6 @@ export interface Flower {
 export enum CommandTypes {
     Color = "co",
     Motion = "mo",
-    UpdateRate = "ur",
     Brightness = "br",
     Speed = "sp",
 }

@@ -95,11 +95,9 @@ class Flower:
             else:
                 logger.error(f"unknown static state: {state}")
             self.invoke_mutators()
+        
         if "mo" in action:
             self.set_current_motion_states(action["mo"])
-
-        if "ur" in action:
-            self.set_update_rate(action["ur"])
 
         if "sp" in action:
             if float(action["sp"]) == 0:

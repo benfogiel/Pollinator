@@ -2,16 +2,7 @@ import json
 import adafruit_logging as logging
 import microcontroller
 
-
-def load_env_file(filepath) -> dict:
-    env_vars = {}
-    with open(filepath, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                key, value = line.split("=", 1)
-                env_vars[key] = value
-    return env_vars
+from constants import LOG_LEVEL
 
 
 def parse_hex_color(hex_color):
@@ -45,10 +36,8 @@ def hsv_to_rgb(h, s, v):
 
 
 def get_logger():
-    env = load_env_file("env.txt")
-
     logger = logging.getLogger("code")
-    logger.setLevel(getattr(logging, env.get("LOG_LEVEL")))
+    logger.setLevel(getattr(logging, LOG_LEVEL))
     return logger
 
 

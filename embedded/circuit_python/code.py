@@ -6,17 +6,12 @@ from adafruit_ble.services.nordic import UARTService
 import json
 
 from flower import Flower
-from util import load_env_file, get_logger
+from util import get_logger
+from constants import NAME, DATA_PIN, NUM_LEDS, PEDAL_LENGTH, REFRESH_RATE, MSG_TERMINATOR
 
-env = load_env_file("env.txt")
 
 # Constants
-NAME = env.get("NAME")
-DATA_PIN = getattr(board, f"D{env.get('DATA_PIN')}")
-NUM_LEDS = int(env.get("NUM_LEDS"))
-PEDAL_LENGTH = int(env.get("PEDAL_LENGTH"))
-REFRESH_RATE = float(env.get("REFRESH_RATE"))
-MSG_TERMINATOR = env.get("MSG_TERMINATOR")
+BOARD_DATA_PIN = getattr(board, f"D{DATA_PIN}")
 INACTIVE_LIFETIME = 120 # 2 minutes
 
 logger = get_logger()
@@ -46,7 +41,7 @@ def update(t_last: float) -> float:
     return t_last
 
 
-flower = Flower(NUM_LEDS, PEDAL_LENGTH, DATA_PIN)
+flower = Flower(NUM_LEDS, PEDAL_LENGTH, BOARD_DATA_PIN)
 
 # Initialize the BLE radio
 ble = BLERadio()

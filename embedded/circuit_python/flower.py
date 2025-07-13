@@ -1,7 +1,7 @@
 import neopixel
 import board
 
-from .util import (
+from util import (
     parse_hex_color,
     hsv_to_rgb,
     get_logger,

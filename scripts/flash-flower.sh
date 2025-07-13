@@ -1,11 +1,26 @@
 #!/bin/bash
 
 # flash the flower circuit python code to the device with the latest code
+# Usage: flash-flower.sh [KEY=value] [KEY=value] ...
 
 REPO_URL=https://github.com/benfogiel/Pollinator.git
 SOURCE_DIR=embedded/circuit_python
 TARGET_DIR=/Volumes/CIRCUITPY
 TEMP_DIR="/tmp/repo_$(date +%s)"
+
+# Check for optional KEY=value arguments
+if [ $# -gt 0 ]; then
+  echo "Processing custom variables:"
+  for arg in "$@"; do
+    if [[ "$arg" =~ ^([A-Z_]+)=(.*)$ ]]; then
+      KEY="${BASH_REMATCH[1]}"
+      VALUE="${BASH_REMATCH[2]}"
+      echo "  $KEY = $VALUE"
+    else
+      echo "Warning: Invalid argument format '$arg'. Expected KEY=value format."
+    fi
+  done
+fi
 
 # check that target directory exists
 if [ ! -d "$TARGET_DIR" ]; then
@@ -27,6 +42,30 @@ git checkout master
 if [ $? -ne 0 ]; then
   echo "Error: Failed to checkout master branch"
   exit 1
+fi
+
+# Update variables in constants.py if arguments are provided
+if [ $# -gt 0 ]; then
+  echo "Updating constants.py..."
+  for arg in "$@"; do
+    if [[ "$arg" =~ ^([A-Z_]+)=(.*)$ ]]; then
+      KEY="${BASH_REMATCH[1]}"
+      VALUE="${BASH_REMATCH[2]}"
+      
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS
+        sed -i '' "s/^${KEY}=.*/${KEY}=\"${VALUE}\"/" "$SOURCE_DIR/constants.py"
+      else
+        # Linux
+        sed -i "s/^${KEY}=.*/${KEY}=\"${VALUE}\"/" "$SOURCE_DIR/constants.py"
+      fi
+      
+      if [ $? -ne 0 ]; then
+        echo "Error: Failed to update $KEY in constants.py"
+        exit 1
+      fi
+    fi
+  done
 fi
 
 echo "Copying files to $TARGET_DIR..."

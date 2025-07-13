@@ -5,8 +5,8 @@ from .util import (
     parse_hex_color,
     hsv_to_rgb,
     get_logger,
-    read_board_cache,
-    update_board_cache,
+    read_persistent_mem,
+    update_persistent_mem,
 )
 
 logger = get_logger()
@@ -38,8 +38,7 @@ class Flower:
         self._increasing_breadth = True
         self._flash_counter = 0
 
-        self._cache_file = "cache.json"
-        self.load_cached_state()
+        self.load_state_from_mem()
 
     def init_leds(self, leds = None):
         len_leds = len(leds) if leds else self.num_leds
@@ -58,23 +57,23 @@ class Flower:
 
         return self.leds
 
-    def load_cached_state(self):
-        cached_state = read_board_cache()
-        if cached_state:
-            self.pollinate(cached_state)
+    def load_state_from_mem(self):
+        persistent_mem_state = read_persistent_mem()
+        if persistent_mem_state:
+            self.pollinate(persistent_mem_state)
 
-        logger.debug(f"Loaded cached state: {cached_state}")
+        logger.debug(f"Loaded persistent_mem state: {persistent_mem_state}")
 
-    def update_cache(self, state):
-        current_cache = read_board_cache()
+    def update_persistent_mem(self, state):
+        current_persistent_mem = read_persistent_mem()
 
         # Merge the dictionaries
-        new_cache = current_cache.copy()
-        new_cache.update(state)
+        new_persistent_mem = current_persistent_mem.copy()
+        new_persistent_mem.update(state)
 
-        update_board_cache(new_cache)
+        update_persistent_mem(new_persistent_mem)
 
-        logger.debug(f"Updated cache: {new_cache}")
+        logger.debug(f"Updated persistent_mem: {new_persistent_mem}")
 
     def update(self):
         for state in self.current_motion_states:
@@ -108,7 +107,7 @@ class Flower:
         if "br" in action:
             self.set_max_brightness(float(action["br"]) / 100)
 
-        self.update_cache(action)
+        self.update_persistent_mem(action)
 
     def set_update_rate(self, rate):
         self.update_rate = rate

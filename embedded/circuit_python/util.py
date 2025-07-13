@@ -52,18 +52,18 @@ def get_logger():
     return logger
 
 
-def update_board_cache(data: dict):
+def update_persistent_mem(data: dict):
     json_str = json.dumps(data)
     encoded_data = json_str.encode("utf-8")
 
     if len(encoded_data) > len(microcontroller.nvm):
         raise ValueError("Data is too large to fit in NVM")
 
-    clear_board_cache()
+    clear_board_persistent_mem()
     microcontroller.nvm[0 : len(encoded_data)] = encoded_data
 
 
-def read_board_cache() -> dict:
+def read_persistent_mem() -> dict:
     stored_data = microcontroller.nvm[:]
     null_byte_index = stored_data.find(b"\x00")
     if null_byte_index != -1:
@@ -72,14 +72,14 @@ def read_board_cache() -> dict:
     json_str = stored_data.decode("utf-8")
 
     try:
-        cache = json.loads(json_str)
+        persistent_mem = json.loads(json_str)
     except ValueError:
         # nvm storage is corrupted clear it
-        clear_board_cache()
+        clear_board_persistent_mem()
         return {}
 
-    return cache
+    return persistent_mem
 
 
-def clear_board_cache() -> dict:
+def clear_board_persistent_mem() -> dict:
     microcontroller.nvm[0:] = b"\x00" * len(microcontroller.nvm)

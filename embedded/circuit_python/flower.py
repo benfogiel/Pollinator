@@ -6,7 +6,6 @@ from util import (
     hsv_to_rgb,
     get_logger,
     read_persistent_mem,
-    update_persistent_mem,
 )
 
 logger = get_logger()
@@ -64,25 +63,29 @@ class Flower:
 
         logger.debug(f"Loaded persistent_mem state: {persistent_mem_state}")
 
-    def update_persistent_mem(self, state):
-        current_persistent_mem = read_persistent_mem()
-
-        # Merge the dictionaries
-        new_persistent_mem = current_persistent_mem.copy()
-        new_persistent_mem.update(state)
-
-        update_persistent_mem(new_persistent_mem)
-
-        logger.debug(f"Updated persistent_mem: {new_persistent_mem}")
-
     def update(self):
         for state in self.current_motion_states:
             self.MOTION_STATES[state][0]()
         self.leds.show()
 
+    def get_current_state(self):
+        """Get the current state of the flower for persistent memory updates"""
+        state = {}
+        if hasattr(self, '_current_color_state'):
+            state['co'] = self._current_color_state
+        if self.current_motion_states:
+            state['mo'] = self.current_motion_states
+        if self.update_rate != 1.0:
+            state['sp'] = str(1.0 / self.update_rate if self.update_rate > 0 else 0)
+        if self._max_brightness != 1.0:
+            state['br'] = str(int(self._max_brightness * 100))
+        return state
+
     def pollinate(self, action):
         if "co" in action:
             state = action["co"]
+            self._current_color_state = state
+            
             components = state.split(",")
             if len(components) > 1:
                 if components[0] == "grad":
@@ -107,7 +110,7 @@ class Flower:
         if "br" in action:
             self.set_max_brightness(float(action["br"]) / 100)
 
-        self.update_persistent_mem(action)
+        self.leds.show()
 
     def set_update_rate(self, rate):
         self.update_rate = rate
@@ -158,7 +161,6 @@ class Flower:
             new_leds.append(new_leds[half - i - 1])
 
         self.init_leds(new_leds)
-        self.leds.show()
 
     def extend(self):
         # extend leds by a multiple of pedal length
@@ -167,19 +169,16 @@ class Flower:
             new_leds.append(self.leds[i // self.pedal_length])
 
         self.init_leds(new_leds)
-        self.leds.show()
 
     # --- color methods --- #
 
     def set_pedal_leds(self, pedal_index, color):
         for i in self.get_pedal_leds(pedal_index):
             self.leds[i] = color
-        self.leds.show()
 
     def set_color_all(self, hex_color):
         color = parse_hex_color(hex_color)
         self.leds.fill(color)
-        self.leds.show()
 
     def set_gradient(self, hex_color1, hex_color2):
         color1 = parse_hex_color(hex_color1)
@@ -190,14 +189,12 @@ class Flower:
                 int(color1[j] + ratio * (color2[j] - color1[j])) for j in range(3)
             )
             self.leds[i] = color
-        self.leds.show()
 
     def rainbow(self):
         for i in range(self.num_leds):
             hue = (i+1) / self.num_leds
             rgb = hsv_to_rgb(hue, 1.0, 1.0)
             self.leds[i] = rgb
-        self.leds.show()
 
     def rainbow2(self):
         for i in range(self.num_leds):
@@ -208,7 +205,6 @@ class Flower:
             )
             rgb = hsv_to_rgb(hue, 1.0, 1.0)
             self.leds[i] = rgb
-        self.leds.show()
 
     # -- motion methods --- #
 

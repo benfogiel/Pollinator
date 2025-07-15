@@ -42,7 +42,11 @@ def get_logger():
 
 
 def update_persistent_mem(data: dict):
-    json_str = json.dumps(data)
+    current_persistent_mem = read_persistent_mem()
+    new_persistent_mem = current_persistent_mem.copy()
+    new_persistent_mem.update(data)
+
+    json_str = json.dumps(new_persistent_mem)
     encoded_data = json_str.encode("utf-8")
 
     if len(encoded_data) > len(microcontroller.nvm):

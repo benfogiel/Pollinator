@@ -207,7 +207,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
             pollinateFlowers({ [CommandTypes.Color]: customColor });
-        }, 250);
+        }, 15);
 
         return () => clearTimeout(debounceTimeout);
     }, [customColor]);
@@ -217,7 +217,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             pollinateFlowers({
                 [CommandTypes.Color]: `grad,${customGrad1},${customGrad2}`,
             });
-        }, 250);
+        }, 15);
 
         return () => clearTimeout(debounceTimeout);
     }, [customGrad1, customGrad2]);
@@ -251,7 +251,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             pollinateFlowers({
                 [CommandTypes.Brightness]: selectedBrightness.toString(),
             });
-        }, 500);
+        }, 15);
 
         return () => clearTimeout(debounceTimeout);
     }, [selectedBrightness]);
@@ -261,7 +261,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             pollinateFlowers({
                 [CommandTypes.Speed]: selectedSpeed.toString(),
             });
-        }, 500);
+        }, 15);
 
         return () => clearTimeout(debounceTimeout);
     }, [selectedSpeed]);

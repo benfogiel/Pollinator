@@ -72,11 +72,15 @@ Example:
 ```
 
 
-### Using Capacitor
+### Building the iOS app
 
-1. Build the Next.js app with `yarn build`
-2. If you don't already hav the `ios/` directory, generate it with `ios/` directory with `npx cap add ios`.
-3. If a new `ios/` directory was generated, we'll need add the NSBluetoothAlwaysUsageDescription to Info.plist, otherwise the app will crash when trying to use Bluetooth. In `./ios/App/App/Info.plist` add the following:
+```
+npm run build:ios
+```
+
+This will build the Next.js app and sync the build with the iOS app.
+
+If building the ios/ directory from scratch, you'll need to add the `NSBluetoothAlwaysUsageDescription` to `Info.plist`, otherwise the app will crash when trying to use Bluetooth. In `./ios/App/App/Info.plist` add the following:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -95,9 +99,6 @@ Example:
 </dict>
 </plist>
 ```
-
-4. Sync the build with the iOS app with `npx cap sync`
-5. Open the iOS app in Xcode with `npx cap open ios` and run the app in the simulator or connect your device and run the app on your device.
 
 To use live reload, add the following to the `capacitor.config.ts` file:
 

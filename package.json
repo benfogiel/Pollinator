@@ -42,6 +42,7 @@
     "scripts": {
         "dev": "next dev -H 0.0.0.0",
         "build": "next build",
+        "build:ios": "next build && npx cap sync ios && npx cap open ios",
         "start": "next start",
         "lint": "eslint src/",
         "lint:fix": "eslint --fix src/",

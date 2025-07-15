@@ -8,7 +8,7 @@ Built to control the most amazing LED flowers you'll ever cast your eyes on.
 
 The app communicates with the microcontroller via Bluetooth Low Energy (BLE).
 
-Commands are JSON strings consisting of the key-value pair: command type (the key) and a command (the value). Each command type is independent and can be used in combination with other command types.
+Commands are semicolon terminated JSON strings consisting of the key-value pair: command type (the key) and a command (the value). Each command type is independent and can be used in combination with other command types.
 
 #### Color:
 Applies a color pattern to the LED strips.
@@ -24,7 +24,7 @@ Commands:
 Example:
 
 ```json
-{"co": "grad, #FF0000, #0000FF"}
+{"co": "grad, #FF0000, #0000FF"};
 ```
 
 #### Motion:
@@ -42,7 +42,7 @@ Commands:
 Example:
 
 ```json
-{"mo": "swirl"}
+{"mo": "swirl"};
 ```
 
 #### Brightness:
@@ -55,7 +55,7 @@ Command: float between `0-100`
 Example:
 
 ```json
-{"br": "50"}
+{"br": "50"};
 ```
 
 #### Speed:
@@ -68,7 +68,7 @@ Command: float between `0-100`
 Example:
 
 ```json
-{"sp": "50"}
+{"sp": "50"};
 ```
 
 

@@ -174,7 +174,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
             if (deviceId && packets) {
                 try {
                     for (const packet of packets) {
-                        await BleClient.writeWithoutResponse(
+                        await BleClient.write(
                             deviceId,
                             process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ??
                                 "",

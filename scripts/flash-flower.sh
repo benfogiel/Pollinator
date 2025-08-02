@@ -4,7 +4,6 @@
 # built to run on a Mac
 # Usage: flash-flower.sh [-f|--firmware] [-l|--local [PATH]]
 
-
 repo_path="/tmp/repo_$(date +%s)"
 flash_firmware=false
 use_local=false

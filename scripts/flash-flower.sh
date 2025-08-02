@@ -5,7 +5,7 @@
 
 REPO_URL=https://github.com/benfogiel/Pollinator.git
 CP_CODE_DIR=embedded/circuit_python
-FIRMWARE_PATH=embedded/bin/adafruit-circuitpython-adafruit_qtpy_esp32s3_nopsram-en_US-9.2.8.bin
+FIRMWARE_PATH=embedded/bin/MicroPython_ESP32_GENERIC_C3-20250415-v1.25.0.bin
 TARGET_DIR=/Volumes/CIRCUITPY
 
 repo_dir="/tmp/repo_$(date +%s)"

@@ -1,5 +1,5 @@
+from machine import Pin
 import neopixel
-import board
 
 from util import (
     parse_hex_color,
@@ -12,7 +12,7 @@ logger = get_logger()
 
 
 class Flower:
-    def __init__(self, num_leds: int, pedal_length: int, data_pin: board.DigitalInOut):
+    def __init__(self, num_leds: int, pedal_length: int, data_pin: Pin):
         self.num_leds = num_leds
         self.pedal_length = pedal_length
         self.data_pin = data_pin
@@ -39,15 +39,14 @@ class Flower:
 
         self.load_state_from_mem()
 
-    def init_leds(self, leds = None):
+    def init_leds(self, leds=None):
         len_leds = len(leds) if leds else self.num_leds
 
-        if hasattr(self, 'leds') and self.leds is not None:
-            self.leds.deinit()
-
-        self.leds = neopixel.NeoPixel(
-            self.data_pin, len_leds, brightness=0.8, auto_write=False
-        )
+        # MicroPython's neopixel doesn't have deinit(), so we just create a new instance
+        self.leds = neopixel.NeoPixel(self.data_pin, len_leds)
+        
+        # Set initial brightness (MicroPython neopixel doesn't have brightness attribute)
+        self._current_brightness = 0.8
 
         if leds:
             # set colors from leds to self.leds
@@ -61,12 +60,12 @@ class Flower:
         if persistent_mem_state:
             self.pollinate(persistent_mem_state)
 
-        logger.debug(f"Loaded persistent_mem state: {persistent_mem_state}")
+        logger.debug("Loaded persistent_mem state: %s", persistent_mem_state)
 
     def update(self):
         for state in self.current_motion_states:
             self.MOTION_STATES[state][0]()
-        self.leds.show()
+        self.leds.write()
 
     def get_current_state(self):
         """Get the current state of the flower for persistent memory updates"""
@@ -95,7 +94,7 @@ class Flower:
             elif state in self.CUSTOM_COLOR_STATES:
                 self.CUSTOM_COLOR_STATES[state]()
             else:
-                logger.error(f"unknown static state: {state}")
+                logger.error("unknown static state: %s", state)
             self.invoke_mutators()
         
         if "mo" in action:
@@ -110,16 +109,16 @@ class Flower:
         if "br" in action:
             self.set_max_brightness(float(action["br"]) / 100)
 
-        self.leds.show()
+        self.leds.write()
 
     def set_update_rate(self, rate):
         self.update_rate = rate
 
-    def set_current_motion_states(self, states: list[str]):
-        self.leds.brightness = self._max_brightness
+    def set_current_motion_states(self, states):
+        self._current_brightness = self._max_brightness
         for state in states:
             if state not in self.MOTION_STATES:
-                raise ValueError(f"State does not exist: {state}")
+                raise ValueError("State does not exist: %s" % state)
         self.current_motion_states = states
         self.invoke_mutators()
 
@@ -127,8 +126,20 @@ class Flower:
 
     def set_max_brightness(self, brightness):
         self._max_brightness = brightness
-        self.leds.brightness = brightness
-        self.leds.show()
+        self._current_brightness = brightness
+        self._apply_brightness()
+        self.leds.write()
+
+    def _apply_brightness(self):
+        """Apply brightness to all LEDs by scaling their RGB values"""
+        for i in range(len(self.leds)):
+            r, g, b = self.leds[i]
+            # Scale by brightness
+            self.leds[i] = (
+                int(r * self._current_brightness),
+                int(g * self._current_brightness),
+                int(b * self._current_brightness)
+            )
 
     def get_pedal_leds(self, pedal_index):
         return range(
@@ -232,17 +243,20 @@ class Flower:
 
     def breathe(self):
         if self._increasing_breadth:
-            self.leds.brightness += 0.01
-            if self.leds.brightness >= self._max_brightness:
+            self._current_brightness += 0.01
+            if self._current_brightness >= self._max_brightness:
                 self._increasing_breadth = False
         else:
-            self.leds.brightness -= 0.01
-            if self.leds.brightness <= 0.1:
+            self._current_brightness -= 0.01
+            if self._current_brightness <= 0.1:
                 self._increasing_breadth = True
+        
+        self._apply_brightness()
 
     def flash(self):
         if self._flash_counter % 2 == 0:
-            self.leds.brightness = self._max_brightness
+            self._current_brightness = self._max_brightness
         else:
-            self.leds.brightness = 0
+            self._current_brightness = 0
         self._flash_counter += 1
+        self._apply_brightness()

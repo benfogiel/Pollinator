@@ -19,5 +19,15 @@ export enum CommandTypes {
 export interface Command {
     command: string;
     type: CommandTypes;
-    name: string;
 }
+
+export interface CommandCard {
+    name: string;
+    command: Command;
+}
+
+export const commandEquals = (a: Command, b: Command): boolean => {
+    return (
+        a.type === b.type && a.command.toLowerCase() === b.command.toLowerCase()
+    );
+};

@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-    appId: "pollinator.app",
+    appId: "pollinator.ben.app",
     appName: "pollinator",
     webDir: "dist",
     plugins: {

@@ -75,7 +75,7 @@ Example:
 ### Building the iOS app
 
 ```
-npm run build:ios
+yarn run build:ios
 ```
 
 This will build the Next.js app and sync the build with the iOS app.

@@ -5,7 +5,7 @@ import { isMobile } from "react-device-detect";
 import { BleDevice } from "@capacitor-community/bluetooth-le";
 
 import { useBLE } from "../../helpers/BLEProvider";
-import { Flower } from "../../helpers/interfaces";
+import { Command, CommandTypes, Flower } from "../../helpers/interfaces";
 import { updateFlowers, updateFlowerConnection } from "../../helpers/util";
 import FlowerCard from "./FlowerCard";
 import Button from "../common/Button";
@@ -38,6 +38,25 @@ const MyceliumGrid: FC<MyceliumGridProps> = ({ flowers, setFlowers }) => {
             (flowerId) => updateFlowerConnection(flowerId, setFlowers, false),
             (flowerId) => updateFlowerConnection(flowerId, setFlowers, true),
         );
+
+        const selectedCommands: Command[] = [];
+        const flowerStateStr = await BLEContext.read(device.deviceId);
+        let flowerState: Record<string, string> | null = null;
+        if (flowerStateStr) {
+            try {
+                flowerState = JSON.parse(flowerStateStr);
+            } catch (error) {
+                console.error("Failed to parse flower state", error);
+            }
+        }
+        if (flowerState) {
+            for (const command in flowerState) {
+                selectedCommands.push({
+                    type: command as CommandTypes,
+                    command: flowerState[command],
+                });
+            }
+        }
 
         updateFlowers(
             {

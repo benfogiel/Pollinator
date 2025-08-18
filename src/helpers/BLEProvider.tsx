@@ -10,6 +10,7 @@ import {
     BleClient,
     BleDevice,
     textToDataView,
+    dataViewToText,
 } from "@capacitor-community/bluetooth-le";
 
 import { splitIntoPackets } from "./util";
@@ -23,6 +24,7 @@ interface BLEContextType {
         reconnectedCallback: (deviceId: string) => void,
         timeout?: number,
     ) => Promise<boolean>;
+    read: (deviceId: string, timeout?: number) => Promise<string>;
     write: (deviceId: string, message: string) => Promise<void>;
     devices: Record<string, BleDevice>;
 }
@@ -54,11 +56,11 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
     }, []);
 
     const discoverDevice = async (): Promise<BleDevice | undefined> => {
-        if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return;
-
         try {
             const device = await BleClient.requestDevice({
-                services: [process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID],
+                services: [
+                    process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ?? "",
+                ],
             });
             setDevices((prevDevices) => ({
                 ...prevDevices,
@@ -93,8 +95,6 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         reconnectedCallback: (deviceId: string) => void,
         timeout: number = 2500,
     ): Promise<boolean> => {
-        if (!process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID) return false;
-
         try {
             await BleClient.disconnect(deviceId);
             await BleClient.connect(
@@ -119,6 +119,31 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         return false;
     };
 
+    const read = async (
+        deviceId: string,
+        timeout: number = 1000,
+    ): Promise<string> => {
+        let message = "";
+        return new Promise((resolve) => {
+            BleClient.startNotifications(
+                deviceId,
+                process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ?? "",
+                process.env.NEXT_PUBLIC_BLE_FLOWER_STATE_UUID ?? "",
+                (data) => {
+                    message += dataViewToText(data);
+                    if (
+                        message.endsWith(
+                            process.env.NEXT_PUBLIC_BLE_MSG_TERMINATOR ?? ";",
+                        )
+                    ) {
+                        resolve(message.slice(0, -1));
+                    }
+                },
+            );
+            setTimeout(() => resolve(""), timeout);
+        });
+    };
+
     const write = async (deviceId: string, message: string): Promise<void> => {
         const packets: string[] = splitIntoPackets(
             message,
@@ -135,12 +160,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
 
     useEffect(() => {
         const processQueue = async () => {
-            if (
-                isSending ||
-                messageQueue.length === 0 ||
-                !process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ||
-                !process.env.NEXT_PUBLIC_BLE_FLOWER_CHARACTERISTIC_UUID
-            ) {
+            if (isSending || messageQueue.length === 0) {
                 return;
             }
 
@@ -154,11 +174,12 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
             if (deviceId && packets) {
                 try {
                     for (const packet of packets) {
-                        await BleClient.writeWithoutResponse(
+                        await BleClient.write(
                             deviceId,
-                            process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID,
-                            process.env
-                                .NEXT_PUBLIC_BLE_FLOWER_CHARACTERISTIC_UUID,
+                            process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ??
+                                "",
+                            process.env.NEXT_PUBLIC_BLE_FLOWER_COMMAND_UUID ??
+                                "",
                             textToDataView(packet),
                         );
                     }
@@ -177,7 +198,14 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
 
     return (
         <BLEContext.Provider
-            value={{ discoverDevice, getDevices, connect, write, devices }}
+            value={{
+                discoverDevice,
+                getDevices,
+                connect,
+                read,
+                write,
+                devices,
+            }}
         >
             {children}
         </BLEContext.Provider>

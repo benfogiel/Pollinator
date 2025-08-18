@@ -5,8 +5,18 @@ import { isMobile } from "react-device-detect";
 import { HexColorPicker } from "react-colorful";
 
 import { useBLE } from "../../helpers/BLEProvider";
-import { Flower, CommandTypes, Command } from "../../helpers/interfaces";
+import {
+    Flower,
+    CommandTypes,
+    Command,
+    CommandCard,
+} from "../../helpers/interfaces";
 import { updateFlowers } from "../../helpers/util";
+import {
+    colorCommandCards,
+    motionCommandCards,
+    commandToCommandCard,
+} from "../../config/commands";
 import ControlCard from "./ControlCard";
 import { FlowerSelector } from "../common/FlowerSelector";
 import SectionSeparator from "../common/Separator";
@@ -29,10 +39,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         useState<boolean>(false);
     const [customGradPicker, setCustomGradPicker] = useState<boolean>(false);
 
-    const [selectedColorCmd, setSelectedColorCmd] = useState<Command | null>(
-        null,
+    const [selectedColorCard, setSelectedColorCard] =
+        useState<CommandCard | null>(null);
+    const [selectedMotionCard, setSelectedMotionCard] = useState<CommandCard[]>(
+        [],
     );
-    const [selectedMotionCmds, setSelectedMotionCmds] = useState<Command[]>([]);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
     const [customGrad1, setCustomGrad1] = useState<string>("#FF0000");
@@ -40,85 +51,12 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const [selectedBrightness, setSelectedBrightness] = useState<number>(50);
     const [selectedSpeed, setSelectedSpeed] = useState<number>(50);
 
-    const colorCards: Command[] = [
-        {
-            type: CommandTypes.Color,
-            name: "Custom",
-            command: customColor,
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Gradient",
-            command: `grad,${customGrad1},${customGrad2}`,
-        },
-        {
-            type: CommandTypes.Color,
-            name: "White",
-            command: "#FFFFFF",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Red",
-            command: "#FF0000",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Yellow",
-            command: "#FFFF00",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Rainbow",
-            command: "rainbow",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Rainbow 2",
-            command: "rainbow2",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Red-Yellow",
-            command: "grad,#FF0000,#FFFF00",
-        },
-        {
-            type: CommandTypes.Color,
-            name: "Yellow-Pink",
-            command: "grad,#FFFF00,#FF00FF",
-        },
-    ];
-
-    const motionCards: Command[] = [
-        {
-            type: CommandTypes.Motion,
-            name: "Swirl",
-            command: "swirl",
-        },
-        {
-            type: CommandTypes.Motion,
-            name: "Ext Swirl",
-            command: "extended_swirl",
-        },
-        {
-            type: CommandTypes.Motion,
-            name: "Breathe",
-            command: "breathe",
-        },
-        {
-            type: CommandTypes.Motion,
-            name: "Flash",
-            command: "flash",
-        },
-        {
-            type: CommandTypes.Motion,
-            name: "Radiate",
-            command: "radiate",
-        },
-    ];
+    const colorCards: CommandCard[] = colorCommandCards;
+    const motionCards: CommandCard[] = motionCommandCards;
 
     const findCard = (name: string, type: CommandTypes) => {
         const card = [...colorCards, ...motionCards].find(
-            (card) => card.name === name && card.type === type,
+            (card) => card.name === name && card.command.type === type,
         );
         return card;
     };
@@ -126,21 +64,21 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     const cardSelected = (name: string, type: CommandTypes) => {
         const card = findCard(name, type);
         if (!card) return;
-        if (card.type === CommandTypes.Color) {
-            setSelectedColorCmd(card);
+        if (card.command.type === CommandTypes.Color) {
+            setSelectedColorCard(card);
             card.name === "Custom"
                 ? setColorPickerVisible(true)
                 : setColorPickerVisible(false);
             card.name === "Gradient"
                 ? setCustomGradPicker(true)
                 : setCustomGradPicker(false);
-        } else if (card.type === CommandTypes.Motion) {
-            if (selectedMotionCmds.map((cmd) => cmd.name).includes(card.name)) {
-                setSelectedMotionCmds(
-                    selectedMotionCmds.filter((cmd) => cmd.name !== card.name),
+        } else if (card.command.type === CommandTypes.Motion) {
+            if (selectedMotionCard.map((cmd) => cmd.name).includes(card.name)) {
+                setSelectedMotionCard(
+                    selectedMotionCard.filter((cmd) => cmd.name !== card.name),
                 );
             } else {
-                setSelectedMotionCmds([...selectedMotionCmds, card]);
+                setSelectedMotionCard([...selectedMotionCard, card]);
             }
         }
     };
@@ -182,27 +120,32 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         for (const index in selectedFlowers) {
             const flower = selectedFlowers[index];
             flower.selectedCommands = [];
-            if (selectedColorCmd)
-                flower.selectedCommands.push(selectedColorCmd);
-            if (selectedMotionCmds)
-                flower.selectedCommands.push(...selectedMotionCmds);
+            if (selectedColorCard)
+                flower.selectedCommands.push(selectedColorCard.command);
+            if (selectedMotionCard)
+                flower.selectedCommands.push(
+                    ...selectedMotionCard.map((cmd) => cmd.command),
+                );
             updateFlowers(flower, props.setFlowers);
         }
-    }, [selectedColorCmd, selectedMotionCmds]);
+    }, [selectedColorCard, selectedMotionCard]);
 
     useEffect(() => {
-        if (selectedColorCmd) {
+        if (selectedColorCard) {
             pollinateFlowers({
-                [selectedColorCmd.type]: selectedColorCmd.command,
+                [selectedColorCard.command.type]:
+                    selectedColorCard.command.command,
             });
         }
-    }, [selectedColorCmd]);
+    }, [selectedColorCard]);
 
     useEffect(() => {
         pollinateFlowers({
-            [CommandTypes.Motion]: selectedMotionCmds.map((cmd) => cmd.command),
+            [CommandTypes.Motion]: selectedMotionCard.map(
+                (cmd) => cmd.command.command,
+            ),
         });
-    }, [selectedMotionCmds]);
+    }, [selectedMotionCard]);
 
     useEffect(() => {
         const debounceTimeout = setTimeout(() => {
@@ -236,13 +179,15 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
         const motionCmds: Command[] = [];
         for (const cmd of intersectingSet) {
             if (cmd.type === CommandTypes.Color) {
-                setSelectedColorCmd(cmd);
+                setSelectedColorCard(commandToCommandCard(cmd));
             } else if (cmd.type === CommandTypes.Motion) {
                 motionCmds.push(cmd);
             }
         }
         if (motionCmds.length > 0) {
-            setSelectedMotionCmds(motionCmds);
+            setSelectedMotionCard(
+                motionCmds.flatMap((cmd) => commandToCommandCard(cmd) ?? []),
+            );
         }
     }, [selectedFlowers]);
 
@@ -294,8 +239,10 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             key={i}
                             id={i}
                             label={card.name}
-                            selected={card.name === selectedColorCmd?.name}
-                            onClick={() => cardSelected(card.name, card.type)}
+                            selected={card.name === selectedColorCard?.name}
+                            onClick={() =>
+                                cardSelected(card.name, card.command.type)
+                            }
                         />
                     );
                 })}
@@ -361,10 +308,12 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                             key={i}
                             id={i}
                             label={card.name}
-                            selected={selectedMotionCmds
+                            selected={selectedMotionCard
                                 ?.map((cmd) => cmd.name)
                                 .includes(card.name)}
-                            onClick={() => cardSelected(card.name, card.type)}
+                            onClick={() =>
+                                cardSelected(card.name, card.command.type)
+                            }
                         />
                     );
                 })}

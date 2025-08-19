@@ -11,45 +11,32 @@ from .flower import Flower
 from .util import get_logger, update_persistent_mem
 from .constants import (
     NAME,
-    DATA_PIN,
-    NUM_LEDS,
-    PEDAL_LENGTH,
+    NAMES,
+    DATA_PINS,
+    LED_LENGTHS,
+    PEDAL_LENGTHS,
     REFRESH_RATE_MS,
     MSG_TERMINATOR,
     MESSAGE_TIMEOUT_MS,
     PERSISTENT_UPDATE_DELAY,
     BLE_SERVICE_UUID,
-    BLE_FLOWER_COMMAND_UUID,
-    BLE_FLOWER_STATE_UUID,
+    BLE_CMD_CHAR_PREFIX,
+    BLE_STATE_CHAR_PREFIX,
 )
 
 
 # Constants
 _BLE_SERVICE_UUID = bluetooth.UUID(BLE_SERVICE_UUID)
-_BLE_FLOWER_COMMAND_UUID = bluetooth.UUID(BLE_FLOWER_COMMAND_UUID)
-_BLE_FLOWER_STATE_UUID = bluetooth.UUID(BLE_FLOWER_STATE_UUID)
 _ADV_INTERVAL_MS = const(250_000)
 
 logger = get_logger()
-data_pin = Pin(DATA_PIN, Pin.OUT)
-flower = Flower(NUM_LEDS, PEDAL_LENGTH, data_pin)
 
-# Register GATT server, the service and characteristics
-ble_service = aioble.Service(_BLE_SERVICE_UUID)
-command_characteristic = aioble.Characteristic(ble_service, _BLE_FLOWER_COMMAND_UUID, write=True, capture=True)
-state_characteristic = aioble.Characteristic(ble_service, _BLE_FLOWER_STATE_UUID, read=True, notify=True)
-
-# Register service(s)
-aioble.register_services(ble_service)
-
-
-async def read_msg_stream(timeout_ms=MESSAGE_TIMEOUT_MS) -> str:
+async def read_msg_stream(cmd_char, timeout_ms=MESSAGE_TIMEOUT_MS) -> str:
     # read messages from the UART stream until terminator is reached or timeout
-    global command_characteristic
     message = ""
     t_start = time.ticks_ms()
     while time.ticks_diff(time.ticks_ms(), t_start) < timeout_ms:
-        _conn, message_chunk = await command_characteristic.written()
+        _conn, message_chunk = await cmd_char.written()
         if message_chunk:
             message += message_chunk.decode()
             if MSG_TERMINATOR in message:
@@ -62,23 +49,25 @@ async def read_msg_stream(timeout_ms=MESSAGE_TIMEOUT_MS) -> str:
     return ""
 
 
-def send_current_state(state: dict):
-    global state_characteristic
-    payload = (json.dumps(state) + MSG_TERMINATOR).encode()
-    state_characteristic.write(payload, send_update=True)
+async def notify_state(flower: Flower, state_char: aioble.Characteristic):
+    while True:
+        state = flower.get_current_state()
+        if state:
+            payload = (json.dumps(state) + MSG_TERMINATOR).encode()
+            state_char.write(payload, send_update=True)
+        await asyncio.sleep(1)
 
 
-async def flower_server():
-    logger.info("Starting Flower BLE server...")
+async def flower_server(name: str, state_char: aioble.Characteristic):
+    logger.info(f"Starting {name} BLE server...")
     while True:
         try:
             async with await aioble.advertise(
                 _ADV_INTERVAL_MS,
-                name=NAME,
+                name=name,
                 services=[_BLE_SERVICE_UUID],
             ) as connection:
                 logger.info(f"Connection from {connection.device}")
-                send_current_state(flower.get_current_state())
                 await connection.disconnected()
         except asyncio.CancelledError:
             logger.info("BLE server cancelled")
@@ -89,12 +78,12 @@ async def flower_server():
             await asyncio.sleep_ms(1)
 
 
-async def command_handler():
+async def command_handler(flower: Flower, cmd_char: aioble.Characteristic):
     t_last_persistent_update = time.time()
     pending_persistent_update = False
     while True:
         try:
-            message = await read_msg_stream()
+            message = await read_msg_stream(cmd_char)
             if message:
                 logger.debug("Received: %s", message)
                 try:
@@ -107,7 +96,7 @@ async def command_handler():
                 # Check if we need to flush pending persistent memory update
                 t_now = time.time()
                 if pending_persistent_update and (t_now - t_last_persistent_update) > PERSISTENT_UPDATE_DELAY:
-                    update_persistent_mem(flower.get_current_state())
+                    update_persistent_mem(flower.get_current_state(), flower.persistent_mem_file)
                     pending_persistent_update = False
                     t_last_persistent_update = t_now
             await asyncio.sleep_ms(REFRESH_RATE_MS)
@@ -121,10 +110,27 @@ async def command_handler():
 
 
 async def main():
-    flower_server_task = asyncio.create_task(flower_server())
-    command_handler_task = asyncio.create_task(command_handler())
-    _flower_updater_task = asyncio.create_task(flower.update_task())
-    await asyncio.gather(flower_server_task, command_handler_task)
+    ble_service = aioble.Service(_BLE_SERVICE_UUID)
+
+    tasks = []
+    flowers = []
+    for i, (name, pin, led_length, pedal_length) in enumerate(zip(NAMES, DATA_PINS, LED_LENGTHS, PEDAL_LENGTHS)):
+        data_pin = Pin(pin, Pin.OUT)
+        flower = Flower(name, i, led_length, pedal_length, data_pin)
+        flowers.append(flower)
+
+        cmd_char_uuid = bluetooth.UUID(f"{BLE_CMD_CHAR_PREFIX}{i:05d}")
+        state_char_uuid = bluetooth.UUID(f"{BLE_STATE_CHAR_PREFIX}{i:05d}")
+        cmd_char = aioble.Characteristic(ble_service, cmd_char_uuid, write=True, capture=True)
+        state_char = aioble.Characteristic(ble_service, state_char_uuid, read=True, notify=True)
+
+        tasks.append(asyncio.create_task(command_handler(flower, cmd_char)))
+        tasks.append(asyncio.create_task(notify_state(flower, state_char)))
+        tasks.append(asyncio.create_task(flower.update_task()))
+
+    tasks.append(asyncio.create_task(flower_server(NAME, state_char)))
+    aioble.register_services(ble_service)
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":

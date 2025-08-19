@@ -28,7 +28,7 @@ export const updateFlowers = (
 };
 
 export const updateFlowerConnection = (
-    flowerId: string,
+    deviceId: string,
     setFlowers: (
         flowersUpdater: (
             prevFlowers: Record<string, Flower>,
@@ -38,8 +38,10 @@ export const updateFlowerConnection = (
 ) => {
     setFlowers((prevFlowers) => {
         const updatedFlowers = { ...prevFlowers };
-        if (updatedFlowers[flowerId] !== undefined) {
-            updatedFlowers[flowerId].connected = connected;
+        for (const flower of Object.values(updatedFlowers)) {
+            if (flower.device.deviceId === deviceId) {
+                flower.connected = connected;
+            }
         }
         return updatedFlowers;
     });

@@ -18,14 +18,28 @@ import { splitIntoPackets } from "./util";
 interface BLEContextType {
     discoverDevice: () => Promise<BleDevice | undefined>;
     getDevices: (deviceIds: string[]) => Promise<BleDevice[]>;
+    getCharacteristics: (
+        deviceId: string,
+        filterByUuidPrefix: string,
+    ) => Promise<string[]>;
+    getCommandCharacteristics: (deviceId: string) => Promise<string[]>;
+    getStateCharacteristics: (deviceId: string) => Promise<string[]>;
     connect: (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
         reconnectedCallback: (deviceId: string) => void,
         timeout?: number,
     ) => Promise<boolean>;
-    read: (deviceId: string, timeout?: number) => Promise<string>;
-    write: (deviceId: string, message: string) => Promise<void>;
+    read: (
+        deviceId: string,
+        charUuid: string,
+        timeout?: number,
+    ) => Promise<string>;
+    write: (
+        message: string,
+        deviceId: string,
+        charUuid: string,
+    ) => Promise<void>;
     devices: Record<string, BleDevice>;
 }
 
@@ -39,9 +53,9 @@ export const useBLE = (): BLEContextType | null => useContext(BLEContext);
 
 const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
     const [devices, setDevices] = useState<Record<string, BleDevice>>({});
-    const [messageQueue, setMessageQueue] = useState<Array<[string, string[]]>>(
-        [],
-    );
+    const [messageQueue, setMessageQueue] = useState<
+        Array<[string, string, string[]]>
+    >([]);
     const [isSending, setIsSending] = useState<boolean>(false);
 
     useEffect(() => {
@@ -89,6 +103,42 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         return [];
     };
 
+    const getCharacteristics = async (
+        deviceId: string,
+        filterByUuidPrefix: string = "",
+    ): Promise<string[]> => {
+        try {
+            const services = await BleClient.getServices(deviceId);
+            const characteristics = services
+                .flatMap((service) => service.characteristics)
+                .filter((char) =>
+                    char.uuid.startsWith(filterByUuidPrefix.toLowerCase()),
+                );
+            return characteristics.map((characteristic) => characteristic.uuid);
+        } catch (error) {
+            console.error("Failed to get characteristics", error);
+        }
+        return [];
+    };
+
+    const getCommandCharacteristics = async (
+        deviceId: string,
+    ): Promise<string[]> => {
+        return getCharacteristics(
+            deviceId,
+            process.env.NEXT_PUBLIC_BLE_CMD_CHAR_PREFIX ?? "",
+        );
+    };
+
+    const getStateCharacteristics = async (
+        deviceId: string,
+    ): Promise<string[]> => {
+        return getCharacteristics(
+            deviceId,
+            process.env.NEXT_PUBLIC_BLE_STATE_CHAR_PREFIX ?? "",
+        );
+    };
+
     const connect = async (
         deviceId: string,
         disconnectCallback: (deviceId: string) => void,
@@ -121,14 +171,15 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
 
     const read = async (
         deviceId: string,
-        timeout: number = 1000,
+        charUuid: string,
+        timeout: number = 5000,
     ): Promise<string> => {
         let message = "";
         return new Promise((resolve) => {
             BleClient.startNotifications(
                 deviceId,
                 process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ?? "",
-                process.env.NEXT_PUBLIC_BLE_FLOWER_STATE_UUID ?? "",
+                charUuid,
                 (data) => {
                     message += dataViewToText(data);
                     if (
@@ -144,7 +195,11 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
         });
     };
 
-    const write = async (deviceId: string, message: string): Promise<void> => {
+    const write = async (
+        message: string,
+        deviceId: string,
+        charUuid: string,
+    ): Promise<void> => {
         const packets: string[] = splitIntoPackets(
             message,
             process.env.NEXT_PUBLIC_MAX_BLE_PACKET_BYTES
@@ -155,7 +210,10 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
                 : ";",
         );
 
-        setMessageQueue((prevQueue) => [...prevQueue, [deviceId, packets]]);
+        setMessageQueue((prevQueue) => [
+            ...prevQueue,
+            [deviceId, charUuid, packets],
+        ]);
     };
 
     useEffect(() => {
@@ -166,7 +224,8 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
 
             setIsSending(true);
 
-            const [deviceId, packets] = messageQueue[0] ?? [
+            const [deviceId, charUuid, packets] = messageQueue[0] ?? [
+                undefined,
                 undefined,
                 undefined,
             ];
@@ -178,8 +237,7 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
                             deviceId,
                             process.env.NEXT_PUBLIC_BLE_FLOWER_SERVICE_UUID ??
                                 "",
-                            process.env.NEXT_PUBLIC_BLE_FLOWER_COMMAND_UUID ??
-                                "",
+                            charUuid,
                             textToDataView(packet),
                         );
                     }
@@ -202,6 +260,9 @@ const BLEProvider: FC<BLEProviderProps> = ({ children }) => {
                 discoverDevice,
                 getDevices,
                 connect,
+                getCharacteristics,
+                getCommandCharacteristics,
+                getStateCharacteristics,
                 read,
                 write,
                 devices,

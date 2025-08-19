@@ -1,7 +1,7 @@
 import json
 import os
 
-from .constants import LOG_LEVEL, PERSISTENT_MEM_FILE
+from .constants import LOG_LEVEL
 
 
 class Logger:
@@ -87,8 +87,8 @@ def hsv_to_rgb(h, s, v):
         return int(v * 255), int(p * 255), int(q * 255)
 
 
-def update_persistent_mem(data: dict, file_path: str = PERSISTENT_MEM_FILE):
-    current_persistent_mem = read_persistent_mem()
+def update_persistent_mem(data: dict, file_path: str):
+    current_persistent_mem = read_persistent_mem(file_path)
     new_persistent_mem = current_persistent_mem.copy()
     new_persistent_mem.update(data)
 
@@ -99,17 +99,18 @@ def update_persistent_mem(data: dict, file_path: str = PERSISTENT_MEM_FILE):
         print(f"Error writing persistent memory: {e}")
 
 
-def read_persistent_mem(file_path: str = PERSISTENT_MEM_FILE) -> dict:
+def read_persistent_mem(file_path: str) -> dict:
     try:
         with open(file_path, 'r') as f:
             persistent_mem = json.load(f)
         return persistent_mem
     except (OSError, ValueError):
-        # File doesn't exist or is corrupted, return empty dict
+        # File doesn't exist or is corrupted, clear and return empty dict
+        clear_board_persistent_mem(file_path)
         return {}
 
 
-def clear_board_persistent_mem(file_path: str = PERSISTENT_MEM_FILE):
+def clear_board_persistent_mem(file_path: str):
     try:
         os.remove(file_path)
     except OSError:

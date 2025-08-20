@@ -11,9 +11,7 @@ interface FlowerSelectorProps {
 }
 
 export const FlowerSelector: FC<FlowerSelectorProps> = (props) => {
-    const [selectedValues, setSelectedValues] = useState(
-        props.flowers.map((flower) => flower.id),
-    );
+    const [selectedValues, setSelectedValues] = useState<string[]>([]);
 
     useEffect(() => {
         props.setSelectedFlowers(

@@ -39,7 +39,9 @@ class FlowerLED(neopixel.NeoPixel):
 
 
 class Flower:
-    def __init__(self, num_leds: int, pedal_length: int, data_pin: Pin):
+    def __init__(self, name: str, id: int, num_leds: int, pedal_length: int, data_pin: Pin):
+        self.name = name
+        self.id = id
         self.num_leds = num_leds
         self.pedal_length = pedal_length
         self.data_pin = data_pin
@@ -47,6 +49,7 @@ class Flower:
         self._update_rate_ms = 1000
         self._t_last_update = time.ticks_ms()
         self.leds = self.init_leds()
+        self.persistent_mem_file = f"persistent_mem_{self.id}.json"
 
         self.CUSTOM_COLOR_STATES = {
             "rainbow": self.rainbow,
@@ -91,7 +94,7 @@ class Flower:
         return self.leds
 
     def load_state_from_mem(self):
-        persistent_mem_state = read_persistent_mem()
+        persistent_mem_state = read_persistent_mem(self.persistent_mem_file)
         if persistent_mem_state:
             self.pollinate(persistent_mem_state)
 
@@ -99,7 +102,7 @@ class Flower:
 
     def get_current_state(self):
         """Get the current state of the flower for persistent memory updates"""
-        state = {}
+        state = {"n": self.name, "id": self.id}
         if hasattr(self, '_current_color_state'):
             state['co'] = self._current_color_state
         if self.current_motion_states:

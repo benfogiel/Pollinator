@@ -90,7 +90,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             for (const index in selectedFlowers) {
                 const flower = selectedFlowers[index];
                 if (flower.connected) {
-                    bleContext.write(flower.id, JSON.stringify(command));
+                    bleContext.write(
+                        JSON.stringify(command),
+                        flower.device.deviceId,
+                        flower.cmd_char_uuid,
+                    );
                 }
             }
         }

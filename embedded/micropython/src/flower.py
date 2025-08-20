@@ -18,6 +18,7 @@ class FlowerLED(neopixel.NeoPixel):
     def __init__(self, pin, n, brightness=0.8, *args, **kwargs):
         super().__init__(pin, n, *args, **kwargs)
         self._brightness = brightness
+        self._rgb = [(0, 0, 0) for _ in range(n)]
 
     @property
     def brightness(self):
@@ -25,15 +26,15 @@ class FlowerLED(neopixel.NeoPixel):
     
     @brightness.setter
     def brightness(self, brightness):
-        original_colors = [self[i] for i, _ in enumerate(self)]
         self._brightness = max(0, min(brightness, 1))
         for i, _ in enumerate(self):
-            self[i] = original_colors[i]
+            self.__setitem__(i, self._rgb[i])
 
     def __getitem__(self, index):
-        return tuple(int(v / self._brightness) for v in super().__getitem__(index))
+        return self._rgb[index]
     
     def __setitem__(self, index, value):
+        self._rgb[index] = value
         super().__setitem__(index, tuple(int(v * self._brightness) for v in value))
         
 

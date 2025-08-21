@@ -31,22 +31,24 @@ _ADV_INTERVAL_MS = const(250_000)
 
 logger = get_logger()
 
-async def read_msg_stream(cmd_char, timeout_ms=MESSAGE_TIMEOUT_MS) -> str:
-    # read messages from the UART stream until terminator is reached or timeout
-    message = ""
-    t_start = time.ticks_ms()
-    while time.ticks_diff(time.ticks_ms(), t_start) < timeout_ms:
-        _conn, message_chunk = await cmd_char.written()
-        if message_chunk:
-            message += message_chunk.decode()
-            if MSG_TERMINATOR in message:
-                return message.replace(MSG_TERMINATOR, "")
-        else:
-            await asyncio.sleep_ms(1)
-
+async def read_once(cmd_char, residual: str, timeout_ms=MESSAGE_TIMEOUT_MS) -> tuple[str, str]:
+    def _parse_message(msg):
+        if MSG_TERMINATOR in msg:
+            return msg.split(MSG_TERMINATOR, 1)
+        return "", msg
+    
+    # check if there's a full message in the residual
+    message, residual = _parse_message(residual)
     if message:
-        logger.error("Timeout reached. Unable to read message stream.")
-    return ""
+        return message, residual
+    
+    # read from characteristic and return if there's a full message
+    try:
+        _conn, message_chunk = await cmd_char.written(timeout_ms)
+        residual += message_chunk.decode()
+        return _parse_message(residual)
+    except asyncio.TimeoutError:
+        return "", residual
 
 
 async def notify_state(flower: Flower, state_char: aioble.Characteristic):
@@ -81,9 +83,10 @@ async def flower_server(name: str, state_char: aioble.Characteristic):
 async def command_handler(flower: Flower, cmd_char: aioble.Characteristic):
     t_last_persistent_update = time.time()
     pending_persistent_update = False
+    residual = ""
     while True:
         try:
-            message = await read_msg_stream(cmd_char)
+            message, residual = await read_once(cmd_char, residual)
             if message:
                 logger.debug("Received: %s", message)
                 try:
@@ -99,7 +102,6 @@ async def command_handler(flower: Flower, cmd_char: aioble.Characteristic):
                     update_persistent_mem(flower.get_current_state(), flower.persistent_mem_file)
                     pending_persistent_update = False
                     t_last_persistent_update = t_now
-            await asyncio.sleep_ms(REFRESH_RATE_MS)
         except asyncio.CancelledError:
             logger.info("Command handler cancelled")
         except Exception as e:

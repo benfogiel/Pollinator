@@ -41,9 +41,11 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
 
     const [selectedColorCard, setSelectedColorCard] =
         useState<CommandCard | null>(null);
+    const [pollinateColor, setPollinateColor] = useState<boolean>(false);
     const [selectedMotionCard, setSelectedMotionCard] = useState<CommandCard[]>(
         [],
     );
+    const [pollinateMotion, setPollinateMotion] = useState<boolean>(false);
     const [selectedFlowers, setSelectedFlowers] = useState<Flower[]>([]);
     const [customColor, setCustomColor] = useState<string>("#9F00FF");
     const [customGrad1, setCustomGrad1] = useState<string>("#FF0000");
@@ -72,6 +74,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             card.name === "Gradient"
                 ? setCustomGradPicker(true)
                 : setCustomGradPicker(false);
+            setPollinateColor(true);
         } else if (card.command.type === CommandTypes.Motion) {
             if (selectedMotionCard.map((cmd) => cmd.name).includes(card.name)) {
                 setSelectedMotionCard(
@@ -80,6 +83,7 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
             } else {
                 setSelectedMotionCard([...selectedMotionCard, card]);
             }
+            setPollinateMotion(true);
         }
     };
 
@@ -135,20 +139,24 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
     }, [selectedColorCard, selectedMotionCard]);
 
     useEffect(() => {
-        if (selectedColorCard) {
+        if (selectedColorCard && pollinateColor) {
             pollinateFlowers({
                 [selectedColorCard.command.type]:
                     selectedColorCard.command.command,
             });
+            setPollinateColor(false);
         }
     }, [selectedColorCard]);
 
     useEffect(() => {
-        pollinateFlowers({
-            [CommandTypes.Motion]: selectedMotionCard.map(
-                (cmd) => cmd.command.command,
-            ),
-        });
+        if (pollinateMotion) {
+            pollinateFlowers({
+                [CommandTypes.Motion]: selectedMotionCard.map(
+                    (cmd) => cmd.command.command,
+                ),
+            });
+            setPollinateMotion(false);
+        }
     }, [selectedMotionCard]);
 
     useEffect(() => {
@@ -188,11 +196,9 @@ const ControlGrid: FC<ControlGridProps> = (props) => {
                 motionCmds.push(cmd);
             }
         }
-        if (motionCmds.length > 0) {
-            setSelectedMotionCard(
-                motionCmds.flatMap((cmd) => commandToCommandCard(cmd) ?? []),
-            );
-        }
+        setSelectedMotionCard(
+            motionCmds.flatMap((cmd) => commandToCommandCard(cmd) ?? []),
+        );
     }, [selectedFlowers]);
 
     useEffect(() => {

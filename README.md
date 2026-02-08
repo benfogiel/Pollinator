@@ -23,7 +23,7 @@ Commands:
 
 Example:
 
-```json
+```python
 {"co": "grad, #FF0000, #0000FF"};
 ```
 
@@ -41,7 +41,7 @@ Commands:
 
 Example:
 
-```json
+```python
 {"mo": "swirl"};
 ```
 
@@ -54,7 +54,7 @@ Command: float between `0-100`
 
 Example:
 
-```json
+```python
 {"br": "50"};
 ```
 
@@ -67,7 +67,7 @@ Command: float between `0-100`
 
 Example:
 
-```json
+```python
 {"sp": "50"};
 ```
 

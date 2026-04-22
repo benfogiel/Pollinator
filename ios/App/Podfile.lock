@@ -19,8 +19,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/ios"
 
 SPEC CHECKSUMS:
-  Capacitor: 8941aba4364ba9d1b22188569001f2ce45cc2b00
-  CapacitorCommunityBluetoothLe: 694d91cd954a2b3149db8967faa7af433700eb6b
+  Capacitor: 7b38922425a542e0b5936c8f72ea89d876dd4df1
+  CapacitorCommunityBluetoothLe: b554daec38aeffc3441662f890e333381797b162
   CapacitorCordova: 8f2cc8d8d3619c566e9418fe8772064a94266106
 
 PODFILE CHECKSUM: 47998e176d73fb1dcd46c2cd81d1fab8a9f392d8

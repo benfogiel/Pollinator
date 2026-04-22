@@ -24,6 +24,19 @@ cd Pollinator
 yarn install
 ```
 
+## Environment variables (optional)
+
+The BLE service UUIDs, packet size, and message terminator live in the
+committed `.env` file at the project root. Its defaults match the stock flower
+firmware (`embedded/micropython/src/constants.py`), so you don't need to
+touch anything to get started.
+
+If you're running custom firmware that advertises different UUIDs or uses a
+different BLE packet size / terminator, create a `.env.local` file next to
+`.env` and override only the variables you need — `.env.local` is git-ignored
+and takes precedence. Restart `yarn dev` after changing env files; Next.js
+only reads them at startup.
+
 ## Running the app in your browser
 
 For UI development without the native layer:
